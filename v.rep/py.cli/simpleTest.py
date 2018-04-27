@@ -1,4 +1,4 @@
-# Make sure to have the server side running in V-REP: 
+# Make sure to have the server side running in V-REP:
 # in a child script of a V-REP scene, add following command
 # to be executed just once, at simulation start:
 #
