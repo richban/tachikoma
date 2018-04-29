@@ -7,11 +7,11 @@ class Thymio:
         self.id = id
         self.client_id = client_id
         self.op_mode = op_mode
-        res, self.body = vrep.simxGetObjectHandle(self.client_id, "ePuck_base%s" %self.suffix, self.op_mode)
 
         # Initialize Motors
-        ret, self.left_motor = vrep.simxGetObjectHandle(self.client_id, "ePuck_leftWheel%s" %self.suffix, self.op_mode)
-        ret, self.right_motor = vrep.simxGetObjectHandle(self.client_id, "ePuck_rightWheel%s" %self.suffix, self.op_mode)
+        res, self.left_motor = vrep.simxGetObjectHandle(self.client_id, "Pioneer_p3dx_leftMotor%s" %self.suffix, self.op_mode)
+        print(res)
+        res, self.right_motor = vrep.simxGetObjectHandle(self.client_id, "Pioneer_p3dx_rightMotor%s" %self.suffix, self.op_mode)
 
     @property
     def suffix(self):
@@ -25,8 +25,8 @@ class Thymio:
 
 
     def _set_two_motor(self, left: float, right: float):
-        vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor, left, self.op_mode)
-        vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor, right, self.op_mode)
+        vrep.simxSetJointTargetVelocity(self.client_id, self.left_motor, left, vrep.simx_opmode_streaming)
+        vrep.simxSetJointTargetVelocity(self.client_id, self.right_motor, right, vrep.simx_opmode_streaming)
 
 
 
@@ -39,18 +39,19 @@ if __name__ == '__main__':
     if client_id != -1:
         print ('Connected to remote API server')
         op_mode = vrep.simx_opmode_oneshot_wait
-        thymio = Thymio(client_id, 0, op_mode)
-        vrep.simxStopSimulation(client_id, op_mode)
-        time.sleep(1)
-        vrep.simxStartSimulation(client_id, op_mode)
+        thymio = Thymio(client_id, None, op_mode)
+        # vrep.simxStopSimulation(client_id, op_mode)
+        # time.sleep(1)
+        # vrep.simxStartSimulation(client_id, op_mode)
         startTime=time.time()
-        while time.time()-startTime < 10:
-            thymio.move_forward()
-            print ('ePock move_forward')
+        thymio.move_forward()
+        thymio0.move_forward()
+        while time.time() - startTime < 10:
+            print(startTime)
             time.sleep(0.005)
 
-        vrep.simxStopSimulation(client_id, op_mode)
-        vrep.simxFinish(client_id)
+        # vrep.simxStopSimulation(client_id, op_mode)
+        # vrep.simxFinish(client_id)
 
         print ('Program ended')
     else:
