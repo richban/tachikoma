@@ -15,6 +15,10 @@ class Robot:
         self.client_id = client_id
         self.op_mode = op_mode
 
+        res, self.body = vrep.simxGetObjectHandle(
+            self.client_id, "Pioneer_p3dx%s" %
+            self.suffix, self.op_mode)
+
         # Initialize Motors
         res, self.left_motor = vrep.simxGetObjectHandle(
             self.client_id, "Pioneer_p3dx_leftMotor%s" %
@@ -22,6 +26,7 @@ class Robot:
         res, self.right_motor = vrep.simxGetObjectHandle(
             self.client_id, "Pioneer_p3dx_rightMotor%s" %
             self.suffix, self.op_mode)
+        self.wheels = [self.left_motor, self.right_motor]
 
         # Initialize Proximity Sensors
         self.prox_sensors = []
@@ -86,6 +91,27 @@ class Robot:
         errorCode, detectionState, detectedPoint, detectedObjectHandle, detectedSurfaceNormalVector = vrep.simxReadProximitySensor(
             self.client_id, sensor, vrep.simx_opmode_buffer)
         return np.linalg.norm(detectedPoint)
+
+    @property
+    def position(self):
+        returnCode, (x, y, z) = vrep.simxGetObjectPosition(
+            self.client_id, self.body, -1, self.op_mode)
+        return x, y
+
+
+class EvolvedRobot(Robot):
+    def __init__(self, chromosome, client_id, id, op_mode):
+        super().__init__(client_id, id, op_mode)
+        self.chromosome = chromosome
+        self.fitness = 0
+        self.wheelspeeds = []
+
+    def loop(self):
+        print("Looping")
+
+    @property
+    def chromosome_size(self):
+        return len(self.prox_sensors) * len(self.wheels)
 
 
 def avoid_obstacles(robot):
