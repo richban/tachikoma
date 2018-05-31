@@ -107,11 +107,23 @@ class EvolvedRobot(Robot):
         self.wheelspeeds = []
 
     def loop(self):
-        print("Looping")
+        wheelspeed = np.array([0, 0], dtype=np.int16)
+        for i, sensor in enumerate(self.prox_sensors):
+            if self.get_sensor_state(sensor):
+                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
+                    self.get_sensor_distance(sensor)))
+            else:
+                wheelspeed += np.int16(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(
+                    self.get_sensor_distance(sensor)))
+
+        self.wheelspeeds.append(np.linalg.norm(wheelspeed))
+
+        self.set_motors(*list(wheelspeed))
+
 
     @property
     def chromosome_size(self):
-        return len(self.prox_sensors) * len(self.wheels)
+        return len(self.prox_sensors) * len(self.wheels) * 2
 
 
 def avoid_obstacles(robot):
