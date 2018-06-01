@@ -41,8 +41,8 @@ class Robot:
             np.append(self.prox_sensors_val, np.linalg.norm(detectedPoint))
 
         # Orientation of all the sensors:
-        self.sensors_loc = np.array([-PI / 2, -50 / 180.0 * PI, -30 / 180.0 * PI, -10 / 180.0 * PI, 10 / 180.0 * PI, 30 / 180.0 * PI, 50 / 180.0 *
-                                     PI, PI / 2, PI / 2, 130 / 180.0 * PI, 150 / 180.0 * PI, 170 / 180.0 * PI, -170 / 180.0 * PI, -150 / 180.0 * PI, -130 / 180.0 * PI, -PI / 2])
+        self.sensors_loc = np.array([-PI / 2, -50 / 180.0 * PI, -30 / 180.0 * PI, -10 / 180.0 * PI, 10 / 180.0 * PI, 30 / 180.0 * PI, 50 / 180.0 * \
+                                    PI, PI / 2, PI / 2, 130 / 180.0 * PI, 150 / 180.0 * PI, 170 / 180.0 * PI, -170 / 180.0 * PI, -150 / 180.0 * PI, -130 / 180.0 * PI, -PI / 2])
 
     @property
     def suffix(self):
@@ -120,7 +120,6 @@ class EvolvedRobot(Robot):
 
         self.set_motors(*list(wheelspeed))
 
-
     @property
     def chromosome_size(self):
         return len(self.prox_sensors) * len(self.wheels) * 2
@@ -151,16 +150,57 @@ def avoid_obstacles(robot):
         kp = 0.5  # steering gain
         vl = v + kp * steer
         vr = v - kp * steer
-        print("V_l = "+str(vl))
-        print("V_r = "+str(vr))
+
         robot.set_motors(vl, vr)
         time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
 
-    #Post ALlocation
-    errorCode=vrep.simxSetJointTargetVelocity(robot.client_id,robot.left_motor,0, robot.op_mode)
-    errorCode=vrep.simxSetJointTargetVelocity(robot.cleint_id,robot.right_motor,0, robot.op_mode)
+    # Post ALlocation
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.left_motor, 0, robot.op_mode)
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.right_motor, 0, robot.op_mode)
 
 
+def braitenber_obstacles(robot):
+    no_detection_dist = 0.5
+    max_detection_dist = 0.2
+    braitenberg_left = [-0.2, -0.4, -0.6, -0.8, -1, -1.2, -
+                        1.4, -1.6, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    braitenberg_right = [-1.6, -1.4, -1.2, -1, -0.8, -
+                         0.6, -0.4, -0.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    detect = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    v0 = 0.2
+    while True:
+        for i, s in enumerate(robot.prox_sensors):
+            dist = robot.get_sensor_distance(s)
+            if dist < no_detection_dist:
+                if dist < max_detection_dist:
+                    dist = max_detection_dist
+                detect[i] = 1 - ((dist - max_detection_dist) /
+                                 (no_detection_dist - max_detection_dist))
+            else:
+                detect[i] = 0
+
+
+        vl = v0
+        vr = v0
+
+        for i, s in enumerate(robot.prox_sensors):
+            vl = vl + braitenberg_left[i] * detect[i]
+            vr = vr + braitenberg_right[i] * detect[i]
+
+        robot.set_motors(vl, vr)
+
+
+def check_sensors(robot):
+    start_time = datetime.now()
+
+    while True:
+        sensors_val = np.array([])
+        for s in robot.prox_sensors:
+            if robot.get_sensor_state(s):
+                print(robot.get_sensor_state(s), s,
+                      robot.get_sensor_distance(s))
 
 
 if __name__ == '__main__':
@@ -182,6 +222,8 @@ if __name__ == '__main__':
         # time.sleep(1)
         # vrep.simxStartSimulation(client_id, op_mode)
         avoid_obstacles(thymio)
+        # check_sensors(thymio)
+        # braitenber_obstacles(thymio)
         # vrep.simxStopSimulation(client_id, op_mode)
         # vrep.simxFinish(client_id)
 
