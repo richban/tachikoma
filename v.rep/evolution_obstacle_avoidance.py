@@ -3,12 +3,14 @@ import vrep
 import numpy as np
 from deap import base, creator, tools, algorithms
 from datetime import datetime, timedelta
+import time
 
 from robot import Robot, EvolvedRobot, avoid_obstacles
 
 MINMAX = 5
 PORT_NUM = 20010
-POPULATION = 300
+POPULATION = 10
+N_GENERATIONS = 10
 RUNTIME = 3
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
@@ -88,6 +90,8 @@ def evolution_obstacle_avoidance():
 
         vrep.simxStopSimulation(client_id, OP_MODE)
 
+        time.sleep(1)
+
         return fitness
 
     # Register genetic operators
@@ -105,7 +109,7 @@ def evolution_obstacle_avoidance():
     toolbox.register("select", tools.selTournament, tournsize=3)
 
     # instantiate the population
-    # create an initial population of 300 individuals
+    # create an initial population of N individuals
     pop = toolbox.population(n=POPULATION)
     # object that contain the best individuals
     hof = tools.HallOfFame(1)
@@ -117,7 +121,7 @@ def evolution_obstacle_avoidance():
     stats.register("max", np.max)
 
     # very basic evolutianry algorithm
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=40,
+    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=N_GENERATIONS,
                                    stats=stats, halloffame=hof, verbose=True)
 
     # Evolution records as a chronological list of dictionaries

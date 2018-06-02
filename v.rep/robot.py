@@ -50,10 +50,10 @@ class Robot:
             return '#%d' % self.id
         return ''
 
-    def move_forward(self, speed=5.0):
+    def move_forward(self, speed=2.0):
         self.set_motors(speed, speed)
 
-    def move_backward(self, speed=5.0):
+    def move_backward(self, speed=2.0):
         self.set_motors(-speed, -speed)
 
     def set_motors(self, left: float, right: float):
@@ -107,17 +107,18 @@ class EvolvedRobot(Robot):
         self.wheelspeeds = []
 
     def loop(self):
-        wheelspeed = np.array([0, 0], dtype=np.int16)
+        wheelspeed = np.array([0.0, 0.0], dtype=np.float16)
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
+                wheelspeed += np.float16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
                     self.get_sensor_distance(sensor)))
+
             else:
-                wheelspeed += np.int16(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(
+                wheelspeed += np.float16(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(
                     self.get_sensor_distance(sensor)))
 
         self.wheelspeeds.append(np.linalg.norm(wheelspeed))
-
+        print(wheelspeed)
         self.set_motors(*list(wheelspeed))
 
 
