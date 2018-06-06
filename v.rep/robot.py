@@ -118,7 +118,6 @@ class EvolvedRobot(Robot):
                     self.get_sensor_distance(sensor)))
 
         self.wheelspeeds.append(np.linalg.norm(wheelspeed))
-        print(wheelspeed)
         self.set_motors(*list(wheelspeed))
 
 

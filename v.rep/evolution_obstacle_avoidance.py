@@ -10,8 +10,8 @@ from robot import Robot, EvolvedRobot, avoid_obstacles
 MINMAX = 5
 PORT_NUM = 20010
 POPULATION = 10
-N_GENERATIONS = 10
-RUNTIME = 3
+N_GENERATIONS = 100
+RUNTIME = 30
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -55,9 +55,13 @@ def evolution_obstacle_avoidance():
     toolbox.register("map", map)
 
     def eval_robot(individual):
-        print("Starting simulation: %s" % str(individual))
 
-        vrep.simxStartSimulation(client_id, OP_MODE)
+        if (vrep.simxStartSimulation(client_id, OP_MODE) == -1):
+            print('Failed to start the simulation\n')
+            print('Program ended\n')
+            return
+
+        print("Starting simulation: %s" % str(individual))
 
         individual = EvolvedRobot(
             individual,
@@ -88,7 +92,10 @@ def evolution_obstacle_avoidance():
              individual.position[1],
              fitness[0]))
 
-        vrep.simxStopSimulation(client_id, OP_MODE)
+        if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
+            print('Failed to stop the simulation\n')
+            print('Program ended\n')
+            return
 
         time.sleep(1)
 
@@ -130,7 +137,9 @@ def evolution_obstacle_avoidance():
     fit_avgs = log.select("avg")
     fit_maxs = log.select("max")
 
-    vrep.simxFinish(client_id)
+    if (vrep.simxFinish(client_id) == -1):
+        print('Evolutionary program failed to exit\n')
+        return
 
 
 evolution_obstacle_avoidance()
