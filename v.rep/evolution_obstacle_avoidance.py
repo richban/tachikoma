@@ -5,13 +5,14 @@ from deap import base, creator, tools, algorithms
 from datetime import datetime, timedelta
 import time
 
-from robot import Robot, EvolvedRobot, avoid_obstacles
+from robot import EvolvedRobot
+from eaplots import plot_single_run
 
 MINMAX = 5
-PORT_NUM = 20010
+PORT_NUM = 19997
 POPULATION = 10
-N_GENERATIONS = 100
-RUNTIME = 30
+N_GENERATIONS = 20
+RUNTIME = 5
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -61,7 +62,7 @@ def evolution_obstacle_avoidance():
             print('Program ended\n')
             return
 
-        print("Starting simulation: %s" % str(individual))
+        print("Starting simulation")
 
         individual = EvolvedRobot(
             individual,
@@ -72,11 +73,15 @@ def evolution_obstacle_avoidance():
         now = datetime.now()
         start_position = None
 
-        while datetime.now() - now < timedelta(seconds=RUNTIME):
+        errorCode, collision_handle = vrep.simxGetCollisionHandle(client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
+        collision=False
+
+        while not collision:
             if start_position is None:
                 start_position = individual.position
 
             individual.loop()
+            collisionDetected, collision = vrep.simxReadCollision(client_id, collision_handle, vrep.simx_opmode_streaming)
 
         # Fitness
         fitness = [np.array(individual.position)[0] -
@@ -136,6 +141,14 @@ def evolution_obstacle_avoidance():
     fit_mins = log.select("min")
     fit_avgs = log.select("avg")
     fit_maxs = log.select("max")
+
+    plot_single_run(
+        gen,
+        fit_mins,
+        fit_avgs,
+        fit_maxs,
+        ratio=0.35,
+        save='../images/evolved-ostacle.pdf')
 
     if (vrep.simxFinish(client_id) == -1):
         print('Evolutionary program failed to exit\n')
