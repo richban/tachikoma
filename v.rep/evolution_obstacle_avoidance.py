@@ -70,7 +70,6 @@ def evolution_obstacle_avoidance():
             id=None,
             op_mode=OP_MODE)
 
-        now = datetime.now()
         start_position = None
 
         errorCode, collision_handle = vrep.simxGetCollisionHandle(client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
