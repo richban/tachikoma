@@ -11,7 +11,7 @@ from eaplots import plot_single_run
 MINMAX = 5
 PORT_NUM = 19997
 POPULATION = 10
-N_GENERATIONS = 20
+N_GENERATIONS = 7
 RUNTIME = 5
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
@@ -72,15 +72,25 @@ def evolution_obstacle_avoidance():
 
         start_position = None
 
-        errorCode, collision_handle = vrep.simxGetCollisionHandle(client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
-        collision=False
+        errorCode, collision_handle = vrep.simxGetCollisionHandle(
+            client_id, "robot_collision", vrep.simx_opmode_blocking)
+        collision = False
+        first_collision_check = True
 
         while not collision:
             if start_position is None:
                 start_position = individual.position
 
             individual.loop()
-            collisionDetected, collision = vrep.simxReadCollision(client_id, collision_handle, vrep.simx_opmode_streaming)
+
+            if first_collision_check:
+                collision_mode = vrep.simx_opmode_streaming
+            else:
+                collision_mode = vrep.simx_opmode_buffer
+
+            collisionDetected, collision = vrep.simxReadCollision(
+                client_id, collision_handle, collision_mode)
+            first_collision_check = False
 
         # Fitness
         fitness = [np.array(individual.position)[0] -
