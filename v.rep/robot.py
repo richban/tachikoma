@@ -30,7 +30,7 @@ class Robot:
 
         # Initialize Proximity Sensors
         self.prox_sensors = []
-        self.prox_sensors_val = []
+        self.prox_sensors_val = np.array([])
         for i in range(1, NUM_SENSORS + 1):
             res, sensor = vrep.simxGetObjectHandle(
                 self.client_id, 'Pioneer_p3dx_ultrasonicSensor%d%s' %
@@ -104,19 +104,26 @@ class EvolvedRobot(Robot):
         super().__init__(client_id, id, op_mode)
         self.chromosome = chromosome
         self.fitness = 0
-        self.wheelspeeds = []
+        self.wheel_speeds = np.array([], dtype=np.float32)
+        self.sensor_activation = np.array([], dtype=np.float32)
 
     def loop(self):
         wheelspeed = np.array([0.1, 0.1], dtype=np.float32)
+        self.wheel_speeds = np.array([], dtype=np.float32)
+        self.sensor_activation = np.array([], dtype=np.float32)
+
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
                 wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(self.get_sensor_distance(sensor)))
-
+                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                # self.sensor_activation.append(self.get_sensor_distance(sensor))
             else:
                 wheelspeed += np.float32(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(
                     self.get_sensor_distance(sensor)))
+                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                # self.sensor_activation.append(self.get_sensor_distance(sensor))
 
-        self.wheelspeeds.append(np.linalg.norm(wheelspeed))
+        self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         self.set_motors(*list(wheelspeed))
 
 

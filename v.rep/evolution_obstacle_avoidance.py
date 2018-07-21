@@ -71,18 +71,31 @@ def evolution_obstacle_avoidance():
             op_mode=OP_MODE)
 
         start_position = None
+        fitness_t = np.array([])
 
+        # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
             client_id, "robot_collision", vrep.simx_opmode_blocking)
         collision = False
         first_collision_check = True
 
         while not collision:
+
             if start_position is None:
                 start_position = individual.position
 
             individual.loop()
 
+            fitness_t = np.append(
+                (individual.wheel_speeds[0] +
+                 individual.wheel_speeds[1] / 2) *
+                (1 - np.sqrt(np.absolute(
+                            individual.wheel_speeds[0] +
+                            individual.wheel_speeds[1]))) *
+                (1 - np.amin(individual.sensor_activation)),
+                fitness_t)
+
+            # collision detection
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
             else:
@@ -93,10 +106,7 @@ def evolution_obstacle_avoidance():
             first_collision_check = False
 
         # Fitness
-        fitness = [np.array(individual.position)[0] -
-                   np.array(start_position)[0] -
-                   abs(np.array(individual.position)[1] -
-                       np.array(start_position)[1]), ]
+        fitness = [np.sum(fitness_t)]
 
         print(
             "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
