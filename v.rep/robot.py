@@ -113,8 +113,7 @@ class EvolvedRobot(Robot):
                 wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(self.get_sensor_distance(sensor)))
 
             else:
-                wheelspeed += np.float32(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(
-                    self.get_sensor_distance(sensor)))
+                wheelspeed += np.float32(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(self.get_sensor_distance(sensor)))
 
         self.wheelspeeds.append(np.linalg.norm(wheelspeed))
         self.set_motors(*list(wheelspeed))

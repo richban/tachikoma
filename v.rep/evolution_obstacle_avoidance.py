@@ -10,9 +10,9 @@ from eaplots import plot_single_run
 
 MINMAX = 5
 PORT_NUM = 19997
-POPULATION = 10
-N_GENERATIONS = 7
-RUNTIME = 5
+POPULATION = 60
+N_GENERATIONS = 40
+RUNTIME = 60
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -77,7 +77,9 @@ def evolution_obstacle_avoidance():
         collision = False
         first_collision_check = True
 
-        while not collision:
+        now = datetime.now()
+
+        while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
             if start_position is None:
                 start_position = individual.position
 
