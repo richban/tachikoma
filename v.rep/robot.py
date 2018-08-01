@@ -104,7 +104,8 @@ class EvolvedRobot(Robot):
         super().__init__(client_id, id, op_mode)
         self.chromosome = chromosome
         self.fitness = 0
-        self.wheelspeeds = []
+        self.wheel_speeds = np.array([], dtype=np.float32)
+        self.sensor_activation = []
 
     def loop(self):
         wheelspeed = np.array([0.1, 0.1], dtype=np.float32)
@@ -117,6 +118,12 @@ class EvolvedRobot(Robot):
 
         self.wheelspeeds.append(np.linalg.norm(wheelspeed))
         self.set_motors(*list(wheelspeed))
+
+
+    def neuro_loop(self):
+        self.sensor_activation = []
+        for i, sensor in enumerate(self.prox_sensors):
+            self.sensor_activation.append(self.get_sensor_distance(sensor))
 
 
     @property
