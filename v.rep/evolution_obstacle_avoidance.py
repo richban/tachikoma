@@ -11,8 +11,8 @@ from eaplots import plot_single_run
 MINMAX = 5
 PORT_NUM = 19997
 POPULATION = 10
-N_GENERATIONS = 7
-RUNTIME = 5
+N_GENERATIONS = 10
+RUNTIME = 60
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -44,13 +44,13 @@ def evolution_obstacle_avoidance():
     # Deap Initialization
     toolbox = base.Toolbox()
     # Attribute generator random
-    toolbox.register("attr_float", random.random)
+    toolbox.register("attr_int", random.randint, -MINMAX, MINMAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
         tools.initRepeat,
         creator.Individual,
-        toolbox.attr_float,
+        toolbox.attr_int,
         n=robot.chromosome_size)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)
@@ -79,20 +79,26 @@ def evolution_obstacle_avoidance():
         collision = False
         first_collision_check = True
 
-        while not collision:
+        now = datetime.now()
+
+        while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
 
             if start_position is None:
                 start_position = individual.position
 
             individual.loop()
 
+            print("Wheel Speed:", individual.wheel_speeds)
+            # print("Sensors Activation:", individual.sensor_activation)
+            # print("Max sensor Activation: ", np.amin(individual.sensor_activation))
+
             fitness_t = np.append(
                 (individual.wheel_speeds[0] +
                  individual.wheel_speeds[1] / 2) *
                 (1 - np.sqrt(np.absolute(
-                            individual.wheel_speeds[0] +
-                            individual.wheel_speeds[1]))) *
-                (1 - np.amin(individual.sensor_activation)),
+                    individual.wheel_speeds[0] +
+                    individual.wheel_speeds[1]))) *
+                (0.6 - np.amin(individual.sensor_activation)),
                 fitness_t)
 
             # collision detection
