@@ -44,13 +44,13 @@ def evolution_obstacle_avoidance():
     # Deap Initialization
     toolbox = base.Toolbox()
     # Attribute generator random
-    toolbox.register("attr_float", random.random)
+    toolbox.register("attr_int", random.randint, -MINMAX, MINMAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
         tools.initRepeat,
         creator.Individual,
-        toolbox.attr_float,
+        toolbox.attr_int,
         n=robot.chromosome_size)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)

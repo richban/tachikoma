@@ -1,2 +1,11 @@
 .DS_Store
 *.pyc
+neat-checkpoint-*
+*.svg
+*.gv
+*.log
+*.out
+*.aux
+*.jpg
+*.pdf
+thesis.prep.report*

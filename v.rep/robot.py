@@ -107,13 +107,14 @@ class EvolvedRobot(Robot):
         self.wheelspeeds = []
 
     def loop(self):
-        wheelspeed = np.array([0.1, 0.1], dtype=np.float32)
+        wheelspeed = np.array([0, 0], dtype=np.int16)
+
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(self.get_sensor_distance(sensor)))
+                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(self.get_sensor_distance(sensor)))
 
             else:
-                wheelspeed += np.float32(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) * np.array(self.get_sensor_distance(sensor)))
+                wheelspeed += np.int16(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
 
         self.wheelspeeds.append(np.linalg.norm(wheelspeed))
         self.set_motors(*list(wheelspeed))
