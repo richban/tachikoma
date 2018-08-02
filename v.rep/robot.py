@@ -9,9 +9,10 @@ import numpy as np
 PI = math.pi
 NUM_SENSORS = 16
 PORT_NUM = 19997
-RUNTIME = 30
+RUNTIME = 10
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
+
 
 class Robot:
 
@@ -46,8 +47,8 @@ class Robot:
             np.append(self.prox_sensors_val, np.linalg.norm(detectedPoint))
 
         # Orientation of all the sensors:
-        self.sensors_loc = np.array([-PI / 2, -50 / 180.0 * PI, -30 / 180.0 * PI, -10 / 180.0 * PI, 10 / 180.0 * PI, 30 / 180.0 * PI, 50 / 180.0 *
-                                     PI, PI / 2, PI / 2, 130 / 180.0 * PI, 150 / 180.0 * PI, 170 / 180.0 * PI, -170 / 180.0 * PI, -150 / 180.0 * PI, -130 / 180.0 * PI, -PI / 2])
+        self.sensors_loc = np.array([-PI / 2, -50 / 180.0 * PI, -30 / 180.0 * PI, -10 / 180.0 * PI, 10 / 180.0 * PI, 30 / 180.0 * PI, 50 / 180.0 * \
+                                    PI, PI / 2, PI / 2, 130 / 180.0 * PI, 150 / 180.0 * PI, 170 / 180.0 * PI, -170 / 180.0 * PI, -150 / 180.0 * PI, -130 / 180.0 * PI, -PI / 2])
 
     @property
     def suffix(self):
@@ -112,6 +113,9 @@ class EvolvedRobot(Robot):
         self.wheel_speeds = np.array([], dtype=np.int16)
         self.sensor_activation = np.array([], dtype=np.int16)
 
+    def __repr__(self):
+        return "Chromose: %s\n WheelSpeed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
+            self.chromosome, self.wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
 
     def loop(self):
         wheelspeed = np.array([0, 0], dtype=np.int16)
@@ -121,19 +125,23 @@ class EvolvedRobot(Robot):
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(self.get_sensor_distance(sensor)) + wheel_bias)
-                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
+                    self.get_sensor_distance(sensor)) + wheel_bias)
+                self.sensor_activation = np.append(
+                    self.sensor_activation, self.get_sensor_distance(sensor))
             else:
-                wheelspeed += np.int16(np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) + wheel_bias)
-                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                wheelspeed += np.int16(
+                    np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) + wheel_bias)
+                self.sensor_activation = np.append(self.sensor_activation, 0)
 
         # normalize sensor data in range [0, 1]
         # self.sensor_activation = normalize(self.sensor_activation[:,np.newaxis], axis=0)
         # normalize wheelspeeds in range [-1, 1]
-        self.wheel_speeds = np.append(self.wheel_speeds, max_abs_scaler.fit_transform(wheelspeed[:,np.newaxis]))
+        self.wheel_speeds = np.append(
+            self.wheel_speeds, max_abs_scaler.fit_transform(wheelspeed[:, np.newaxis]))
         # self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         self.set_motors(*list(self.wheel_speeds))
-
+        time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
 
     @property
     def chromosome_size(self):
@@ -165,31 +173,35 @@ def avoid_obstacles(robot):
         kp = 0.5  # steering gain
         vl = v + kp * steer
         vr = v - kp * steer
-        print("V_l = "+str(vl))
-        print("V_r = "+str(vr))
+        print("V_l = " + str(vl))
+        print("V_r = " + str(vr))
         robot.set_motors(vl, vr)
         time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
 
-    #Post ALlocation
-    errorCode=vrep.simxSetJointTargetVelocity(robot.client_id,robot.left_motor,0, robot.op_mode)
-    errorCode=vrep.simxSetJointTargetVelocity(robot.client_id,robot.right_motor,0, robot.op_mode)
+    # Post ALlocation
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.left_motor, 0, robot.op_mode)
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.right_motor, 0, robot.op_mode)
 
 
 def test_robot(robot):
     start_time = datetime.now()
-    while True: #datetime.now() - start_time < timedelta(seconds=RUNTIME):
+    while True:  # datetime.now() - start_time < timedelta(seconds=RUNTIME):
         sensors_val = np.array([])
         for s in robot.prox_sensors:
             if robot.get_sensor_state(s):
-                detectedPoint = robot.get_sensor_distance(s)
+                detectedPoint = np.array(robot.get_sensor_distance(s))
                 print(s, detectedPoint)
 
         robot.set_motors(0, 0)
         time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
 
-    #Post ALlocation
-    errorCode=vrep.simxSetJointTargetVelocity(robot.client_id,robot.left_motor,0, robot.op_mode)
-    errorCode=vrep.simxSetJointTargetVelocity(robot.client_id,robot.right_motor,0, robot.op_mode)
+    # Post ALlocation
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.left_motor, 0, robot.op_mode)
+    errorCode = vrep.simxSetJointTargetVelocity(
+        robot.client_id, robot.right_motor, 0, robot.op_mode)
 
 
 if __name__ == '__main__':
@@ -197,7 +209,7 @@ if __name__ == '__main__':
     vrep.simxFinish(-1)  # just in case, close all opened connections
     client_id = vrep.simxStart(
         '127.0.0.1',
-        PORT_NUM ,
+        PORT_NUM,
         True,
         True,
         5000,

@@ -10,8 +10,8 @@ from eaplots import plot_single_run
 
 MINMAX = 5
 PORT_NUM = 19997
-POPULATION = 10
-N_GENERATIONS = 10
+POPULATION = 20
+N_GENERATIONS = 30
 RUNTIME = 60
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
@@ -88,17 +88,15 @@ def evolution_obstacle_avoidance():
 
             individual.loop()
 
-            print("Wheel Speed:", individual.wheel_speeds)
-            # print("Sensors Activation:", individual.sensor_activation)
-            # print("Max sensor Activation: ", np.amin(individual.sensor_activation))
+            # print(individual)
 
             fitness_t = np.append(
                 (individual.wheel_speeds[0] +
                  individual.wheel_speeds[1] / 2) *
-                (1 - np.sqrt(np.absolute(
-                    individual.wheel_speeds[0] +
+                (5 - np.sqrt(np.absolute(
+                    individual.wheel_speeds[0] -
                     individual.wheel_speeds[1]))) *
-                (0.6 - np.amin(individual.sensor_activation)),
+                (1 - np.amin(individual.sensor_activation)),
                 fitness_t)
 
             # collision detection
