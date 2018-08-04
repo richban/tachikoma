@@ -75,7 +75,6 @@ def run(config_file):
 
             net = neat.nn.FeedForwardNetwork.create(genome, config)
 
-
             while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
                 if start_position is None:
                     start_position = individual.position
@@ -119,7 +118,7 @@ def run(config_file):
             genome.fitness = 1.0 - fitness[0]
 
     # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 7)
+    winner = p.run(eval_genomes, 40)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
@@ -133,8 +132,8 @@ def run(config_file):
     # visualize.plot_stats(stats, ylog=False, view=True)
     # visualize.plot_species(stats, view=True)
 
-    p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
-    p.run(eval_genomes, 10)
+    # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
+    # p.run(eval_genomes, 10)
 
 
 if __name__ == '__main__':
