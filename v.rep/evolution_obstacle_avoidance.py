@@ -55,7 +55,8 @@ def evolution_obstacle_avoidance():
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)
 
-    def eval_robot(individual):
+    def eval_robot(chromosome):
+
 
         if (vrep.simxStartSimulation(client_id, OP_MODE) == -1):
             print('Failed to start the simulation\n')
@@ -65,7 +66,7 @@ def evolution_obstacle_avoidance():
         print("Starting simulation")
 
         individual = EvolvedRobot(
-            individual,
+            chromosome,
             client_id=client_id,
             id=None,
             op_mode=OP_MODE)
@@ -84,6 +85,8 @@ def evolution_obstacle_avoidance():
                 start_position = individual.position
 
             individual.loop()
+
+            # print(individual)
 
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
