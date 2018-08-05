@@ -13,6 +13,7 @@ from robot import EvolvedRobot
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
 RUNTIME = 10
+N_GENERATIONS = 40
 global client_id
 
 
@@ -117,8 +118,8 @@ def run(config_file):
 
             genome.fitness = 1.0 - fitness[0]
 
-    # Run for up to 300 generations.
-    winner = p.run(eval_genomes, 40)
+    # Run for up to N_GENERATIONS generations.
+    winner = p.run(eval_genomes, N_GENERATIONS)
 
     # Display the winning genome.
     print('\nBest genome:\n{!s}'.format(winner))
