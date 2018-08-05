@@ -9,7 +9,7 @@ import numpy as np
 PI = math.pi
 NUM_SENSORS = 16
 PORT_NUM = 19997
-RUNTIME = 10
+RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
 
@@ -118,10 +118,10 @@ class EvolvedRobot(Robot):
             self.chromosome, self.wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
 
     def loop(self):
-        wheelspeed = np.array([0, 0], dtype=np.int16)
-        wheel_bias = np.array([1, 1], dtype=np.int16)
-        self.wheel_speeds = np.array([], dtype=np.int16)
-        self.sensor_activation = np.array([], dtype=np.int16)
+        wheelspeed = np.array([0, 0], dtype=np.float)
+        wheel_bias = np.array([1.0, 1.0], dtype=np.float)
+        self.wheel_speeds = np.array([])
+        self.sensor_activation = np.array([])
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
@@ -136,12 +136,15 @@ class EvolvedRobot(Robot):
 
         # normalize sensor data in range [0, 1]
         # self.sensor_activation = normalize(self.sensor_activation[:,np.newaxis], axis=0)
+
         # normalize wheelspeeds in range [-1, 1]
-        self.wheel_speeds = np.append(
-            self.wheel_speeds, max_abs_scaler.fit_transform(wheelspeed[:, np.newaxis]))
-        # self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
-        self.set_motors(*list(self.wheel_speeds))
-        time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
+        left = ((2 * ((wheelspeed[0]+81)/162)) - 1)
+        right = ((2 * ((wheelspeed[1]+81)/162)) - 1)
+        # self.wheel_speeds = np.append(
+        #     self.wheel_speeds, max_abs_scaler.fit_transform(wheelspeed[:, np.newaxis]))
+        self.wheel_speeds = np.append(self.wheel_speeds, [left, right])
+        self.set_motors(*list(wheelspeed))
+        time.sleep(0.1) # loop executes once every 0.1 seconds
 
     @property
     def chromosome_size(self):
@@ -187,15 +190,36 @@ def avoid_obstacles(robot):
 
 def test_robot(robot):
     start_time = datetime.now()
+    wheel_speeds = np.array([-0.02, 0.33], dtype=np.float)
+    fitness_t = np.array([])
+
     while True:  # datetime.now() - start_time < timedelta(seconds=RUNTIME):
         sensors_val = np.array([])
         for s in robot.prox_sensors:
-            if robot.get_sensor_state(s):
-                detectedPoint = np.array(robot.get_sensor_distance(s))
-                print(s, detectedPoint)
+            # if robot.get_sensor_state(s):
+            detectedPoint = np.array(robot.get_sensor_distance(s))
+            sensors_val = np.append(sensors_val, robot.get_sensor_distance(s))
+            # print(s, detectedPoint)
 
-        robot.set_motors(0, 0)
-        time.sleep(0.2)  # loop executes once every 0.2 seconds (= 5 Hz)
+        fitness_t = np.append(fitness_t,
+            ((wheel_speeds[0] +
+             wheel_speeds[1]) / 2) *
+            (1 - (np.sqrt(np.absolute(
+                wheel_speeds[0] -
+                wheel_speeds[1])))) *
+            (np.absolute(sensors_val - 1)))
+
+        print("WheelSpeed ", wheel_speeds[0], wheel_speeds[1])
+        print("Center ", ((wheel_speeds[0]+wheel_speeds[1])/ 2))
+        print("Abs penalized wheel ", np.absolute(wheel_speeds[0]-wheel_speeds[1]))
+        print("Sqrt penalized wheel ", (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1]))))
+        print("penalized wheel ", (1 - (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1])))))
+        print("sensor ", np.amin(sensors_val))
+        print("sensor activation ", np.absolute(np.amin(sensors_val) - 1))
+        print(fitness_t)
+
+        robot.set_motors(-0.02, 0.33)
+        time.sleep(0.1)  # loop executes once every 0.2 seconds (= 5 Hz)
 
     # Post ALlocation
     errorCode = vrep.simxSetJointTargetVelocity(

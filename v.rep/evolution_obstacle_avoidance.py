@@ -10,9 +10,9 @@ from eaplots import plot_single_run
 
 MINMAX = 5
 PORT_NUM = 19997
-POPULATION = 20
-N_GENERATIONS = 30
-RUNTIME = 60
+POPULATION = 30
+N_GENERATIONS = 40
+RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -62,6 +62,7 @@ def evolution_obstacle_avoidance():
             print('Program ended\n')
             return
 
+        print('Connected to remote API server')
         print("Starting simulation")
 
         individual = EvolvedRobot(
@@ -88,17 +89,17 @@ def evolution_obstacle_avoidance():
 
             individual.loop()
 
-            print(individual)
+            # print(individual)
 
-            fitness_t = np.append(
-                (individual.wheel_speeds[0] +
-                 individual.wheel_speeds[1] / 2) *
-                (1 - np.sqrt(np.absolute(
+            fitness_t = np.append(fitness_t,
+                ((individual.wheel_speeds[0] +
+                 individual.wheel_speeds[1]) / 2) *
+                (1 - (np.sqrt(np.absolute(
                     individual.wheel_speeds[0] -
-                    individual.wheel_speeds[1]))) *
-                (1 - np.amin(individual.sensor_activation)),
-                fitness_t)
+                    individual.wheel_speeds[1])))) *
+                (np.absolute(np.amin(individual.sensor_activation - 1)))
 
+            print(fitness_t)
             # collision detection
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
