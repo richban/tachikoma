@@ -91,14 +91,14 @@ def evolution_obstacle_avoidance():
 
             individual.loop()
 
-            # print(individual)
+            print(individual)
 
             fitness_t = np.append(fitness_t,
-                ((individual.wheel_speeds[0] +
-                 individual.wheel_speeds[1]) / 2) *
+                ((individual.norm_wheel_speeds[0] +
+                 individual.norm_wheel_speeds[1]) / 2) *
                 (1 - (np.sqrt(np.absolute(
-                    individual.wheel_speeds[0] -
-                    individual.wheel_speeds[1])))) *
+                    individual.norm_wheel_speeds[0] -
+                    individual.norm_wheel_speeds[1])))) *
                 (np.absolute(np.amin(individual.sensor_activation - 1))))
 
 

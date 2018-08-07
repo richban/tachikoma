@@ -110,40 +110,40 @@ class EvolvedRobot(Robot):
         super().__init__(client_id, id, op_mode)
         self.chromosome = chromosome
         self.fitness = 0
-        self.wheel_speeds = np.array([], dtype=np.int16)
-        self.sensor_activation = np.array([], dtype=np.int16)
-
-    def __repr__(self):
-        return "Chromose: %s\n WheelSpeed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
-            self.chromosome, self.wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
-
-    def loop(self):
-        wheelspeed = np.array([0, 0], dtype=np.float)
-        wheel_bias = np.array([1.0, 1.0], dtype=np.float)
         self.wheel_speeds = np.array([])
         self.sensor_activation = np.array([])
+        self.norm_wheel_speeds = np.array([])
+
+    def __repr__(self):
+        return "Chromosome: %s\n WheelSpeed: %s\n Normalized Speed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
+            self.chromosome, self.wheel_speeds, self.norm_wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
+
+    def loop(self):
+        wheelspeed = np.array([0, 0])
+        self.wheel_speeds = np.array([])
+        self.sensor_activation = np.array([])
+        self.norm_wheel_speeds = np.array([])
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
                 wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
-                    self.get_sensor_distance(sensor)) + wheel_bias)
+                    self.get_sensor_distance(sensor)))
                 self.sensor_activation = np.append(
                     self.sensor_activation, self.get_sensor_distance(sensor))
             else:
                 wheelspeed += np.int16(
-                    np.array(self.chromosome[i * 4 + 2:i * 4 + 4]) + wheel_bias)
+                    np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
                 self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
 
         # normalize sensor data in range [0, 1]
         # self.sensor_activation = normalize(self.sensor_activation[:,np.newaxis], axis=0)
 
+        # motor wheel wheel_speeds
+        self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         # normalize wheelspeeds in range [-1, 1]
-        left = ((2 * ((wheelspeed[0]+81)/162)) - 1)
-        right = ((2 * ((wheelspeed[1]+81)/162)) - 1)
-        # self.wheel_speeds = np.append(
-        #     self.wheel_speeds, max_abs_scaler.fit_transform(wheelspeed[:, np.newaxis]))
-        self.wheel_speeds = np.append(self.wheel_speeds, [left, right])
-        self.set_motors(*list(wheelspeed))
+        self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, -80, 80))
+
+        self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1) # loop executes once every 0.1 seconds
 
     @property
@@ -186,6 +186,13 @@ def avoid_obstacles(robot):
         robot.client_id, robot.left_motor, 0, robot.op_mode)
     errorCode = vrep.simxSetJointTargetVelocity(
         robot.client_id, robot.right_motor, 0, robot.op_mode)
+
+
+def normalize_1_1(x, min, max):
+    return np.array([((2 * ((x[0]-(min))/(max-(min)))) - 1), ((2 * ((x[1]-(min))/(max-(min)))) - 1)])
+
+def normalize_0_1(x, min, max):
+    return np.array([(x[0]-(min)/(max-(min))), (x[1]-(min)/(max-(min)))])
 
 
 def test_robot(robot):
