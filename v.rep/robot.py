@@ -148,9 +148,9 @@ class EvolvedRobot(Robot):
         time.sleep(0.1) # loop executes once every 0.1 seconds
 
     def neuro_loop(self):
-        self.sensor_activation = []
+        self.sensor_activation = np.array([])
         for i, sensor in enumerate(self.prox_sensors):
-            self.sensor_activation.append(self.get_sensor_distance(sensor))
+            self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
 
 
     @property

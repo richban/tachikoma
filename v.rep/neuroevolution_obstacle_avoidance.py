@@ -13,7 +13,7 @@ from robot import EvolvedRobot
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
 RUNTIME = 10
-N_GENERATIONS = 40
+N_GENERATIONS = 2
 global client_id
 
 
@@ -73,6 +73,8 @@ def run(config_file):
             first_collision_check = True
 
             now = datetime.now()
+            fitness_t = np.array([])
+            scaled_output = np.array([])
 
             net = neat.nn.FeedForwardNetwork.create(genome, config)
 
@@ -92,14 +94,26 @@ def run(config_file):
                 first_collision_check = False
 
                 output = net.activate(individual.sensor_activation)
-                individual.set_motors(*list(output))
+                scaled_output = np.array(output) * 48
+                individual.set_motors(*list(scaled_output))
 
+                # Fitness_t
+                fitness_t = np.append(fitness_t,
+                    ((output[0] + output[1]) / 2) *
+                    (1 - (np.sqrt(np.absolute(output[0] - output[1])))) *
+                    (np.absolute(np.amin(individual.sensor_activation - 1))))
+
+
+
+            if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
+                print('Failed to stop the simulation\n')
+                print('Program ended\n')
+                return
+
+            time.sleep(1)
 
             # Fitness
-            fitness = [np.array(individual.position)[0] -
-                       np.array(start_position)[0] -
-                       abs(np.array(individual.position)[1] -
-                           np.array(start_position)[1]), ]
+            fitness = [np.sum(fitness_t)]
 
             print(
                 "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
@@ -109,14 +123,7 @@ def run(config_file):
                  individual.position[1],
                  fitness[0]))
 
-            if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
-                print('Failed to stop the simulation\n')
-                print('Program ended\n')
-                return
-
-            time.sleep(1)
-
-            genome.fitness = 1.0 - fitness[0]
+            genome.fitness = fitness[0]
 
     # Run for up to N_GENERATIONS generations.
     winner = p.run(eval_genomes, N_GENERATIONS)
@@ -128,10 +135,10 @@ def run(config_file):
     print('\nOutput:')
     winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
-    # node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
-    # visualize.draw_net(config, winner, True, node_names=node_names)
-    # visualize.plot_stats(stats, ylog=False, view=True)
-    # visualize.plot_species(stats, view=True)
+    node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
+    visualize.draw_net(config, winner, True, node_names=node_names)
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
 
     # p = neat.Checkpointer.restore_checkpoint('neat-checkpoint-4')
     # p.run(eval_genomes, 10)
