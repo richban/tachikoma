@@ -1,5 +1,17 @@
 .DS_Store
 *.pyc
+<<<<<<< HEAD
 neat-checkpoint*
 *.svg
 *.gv
+=======
+neat-checkpoint-*
+*.svg
+*.gv
+*.log
+*.out
+*.aux
+*.jpg
+*.pdf
+thesis.prep.report*
+>>>>>>> feature/fitness

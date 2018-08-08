@@ -9,10 +9,12 @@ from robot import EvolvedRobot
 from eaplots import plot_single_run
 
 MINMAX = 5
+MIN = 0
+MAX = 3
 PORT_NUM = 19997
-POPULATION = 60
+POPULATION = 80
 N_GENERATIONS = 40
-RUNTIME = 60
+RUNTIME = 24
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -34,6 +36,9 @@ def evolution_obstacle_avoidance():
         print('Program ended')
         return
 
+    print('Connected to remote API server')
+
+
     robot = EvolvedRobot([], client_id=client_id, id=None, op_mode=OP_MODE)
 
     # Creating the appropriate type of the problem
@@ -44,13 +49,13 @@ def evolution_obstacle_avoidance():
     # Deap Initialization
     toolbox = base.Toolbox()
     # Attribute generator random
-    toolbox.register("attr_float", random.random)
+    toolbox.register("attr_int", random.randint, MIN, MAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
         tools.initRepeat,
         creator.Individual,
-        toolbox.attr_float,
+        toolbox.attr_int,
         n=robot.chromosome_size)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)
@@ -71,7 +76,9 @@ def evolution_obstacle_avoidance():
             op_mode=OP_MODE)
 
         start_position = None
+        fitness_t = np.array([])
 
+        # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
             client_id, "robot_collision", vrep.simx_opmode_blocking)
         collision = False
@@ -80,11 +87,24 @@ def evolution_obstacle_avoidance():
         now = datetime.now()
 
         while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
+
             if start_position is None:
                 start_position = individual.position
 
             individual.loop()
 
+            # print(individual)
+
+            fitness_t = np.append(fitness_t,
+                ((individual.norm_wheel_speeds[0] +
+                 individual.norm_wheel_speeds[1]) / 2) *
+                (1 - (np.sqrt(np.absolute(
+                    individual.norm_wheel_speeds[0] -
+                    individual.norm_wheel_speeds[1])))) *
+                (np.absolute(np.amin(individual.sensor_activation - 1))))
+
+
+            # collision detection
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
             else:
@@ -95,10 +115,7 @@ def evolution_obstacle_avoidance():
             first_collision_check = False
 
         # Fitness
-        fitness = [np.array(individual.position)[0] -
-                   np.array(start_position)[0] -
-                   abs(np.array(individual.position)[1] -
-                       np.array(start_position)[1]), ]
+        fitness = [np.sum(fitness_t)]
 
         print(
             "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
