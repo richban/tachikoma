@@ -9,10 +9,12 @@ from robot import EvolvedRobot
 from eaplots import plot_single_run
 
 MINMAX = 5
+MIN = 0
+MAX = 3
 PORT_NUM = 19997
 POPULATION = 80
 N_GENERATIONS = 40
-RUNTIME = 20
+RUNTIME = 24
 OP_MODE = vrep.simx_opmode_oneshot_wait
 
 
@@ -47,7 +49,7 @@ def evolution_obstacle_avoidance():
     # Deap Initialization
     toolbox = base.Toolbox()
     # Attribute generator random
-    toolbox.register("attr_int", random.randint, -MINMAX, MINMAX)
+    toolbox.register("attr_int", random.randint, MIN, MAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
@@ -91,7 +93,7 @@ def evolution_obstacle_avoidance():
 
             individual.loop()
 
-            print(individual)
+            # print(individual)
 
             fitness_t = np.append(fitness_t,
                 ((individual.norm_wheel_speeds[0] +

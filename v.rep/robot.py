@@ -12,7 +12,8 @@ PORT_NUM = 19997
 RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
-
+X_MIN = 0
+X_MAX = 48
 
 class Robot:
 
@@ -141,7 +142,7 @@ class EvolvedRobot(Robot):
         # motor wheel wheel_speeds
         self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         # normalize wheelspeeds in range [-1, 1]
-        self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, -80, 80))
+        self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, X_MIN, X_MAX))
 
         self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1) # loop executes once every 0.1 seconds
