@@ -12,7 +12,7 @@ PORT_NUM = 19997
 RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
-X_MIN = 0
+X_MIN = -48
 X_MAX = 48
 
 class Robot:
