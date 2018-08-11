@@ -1,22 +1,36 @@
 import random
 import vrep
 import numpy as np
+import time
 from deap import base, creator, tools, algorithms
 from datetime import datetime, timedelta
-import time
+import matplotlib.pyplot as plt
+import networkx
+import argparse
+
 
 from robot import EvolvedRobot
 from eaplots import plot_single_run
 
-MINMAX = 5
-MIN = 0
-MAX = 3
+# VREP
 PORT_NUM = 19997
-POPULATION = 80
-N_GENERATIONS = 40
-RUNTIME = 24
 OP_MODE = vrep.simx_opmode_oneshot_wait
+RUNTIME = 24
 
+# GENOME TYPE
+MINMAX = 5
+MIN = -3
+MAX = 3
+
+# EVOLUTION
+POPULATION = 2
+N_GENERATIONS = 2
+# CXPB  is the probability with which two individuals
+# are crossed
+#
+# MUTPB is the probability for mutating an individual
+CXPB = 0.5
+MUTPB = 0.2
 
 def evolution_obstacle_avoidance():
     print('Evolutionary program started!')
@@ -48,6 +62,9 @@ def evolution_obstacle_avoidance():
 
     # Deap Initialization
     toolbox = base.Toolbox()
+
+    history = tools.History()
+
     # Attribute generator random
     toolbox.register("attr_int", random.randint, MIN, MAX)
     # Structure initializers; instantiate an individual or population
@@ -140,19 +157,25 @@ def evolution_obstacle_avoidance():
     # register the crossover operator
     toolbox.register("mate", tools.cxTwoPoint)
     # register a mutation operator with a probability to
-    # flip each attribute/gene of 0.05
-    toolbox.register("mutate", tools.mutFlipBit, indpb=0.05)
+    # flip each attribute/gene
+    toolbox.register("mutate", tools.mutFlipBit, indpb=MUTPB)
     # operator for selecting individuals for breeding the next
     # generation: each individual of the current generation
     # is replaced by the 'fittest' (best) of three individuals
     # drawn randomly from the current generation.
     toolbox.register("select", tools.selTournament, tournsize=3)
 
+    # Decorate the variation operators
+    toolbox.decorate("mate", history.decorator)
+    toolbox.decorate("mutate", history.decorator)
+
     # instantiate the population
     # create an initial population of N individuals
     pop = toolbox.population(n=POPULATION)
+    history.update(pop)
+
     # object that contain the best individuals
-    hof = tools.HallOfFame(1)
+    hof = tools.HallOfFame(20)
     # maintain stats of the evolution
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", np.mean)
@@ -161,8 +184,15 @@ def evolution_obstacle_avoidance():
     stats.register("max", np.max)
 
     # very basic evolutianry algorithm
-    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=0.5, mutpb=0.2, ngen=N_GENERATIONS,
+    pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=N_GENERATIONS,
                                    stats=stats, halloffame=hof, verbose=True)
+
+    graph = networkx.DiGraph(history.genealogy_tree)
+    graph = graph.reverse()     # Make the grah top-down
+    colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
+    networkx.draw(graph, node_color=colors)
+    plt.savefig('../images/genealogy_tree.pdf')
+
 
     # Evolution records as a chronological list of dictionaries
     gen = log.select("gen")
@@ -170,17 +200,18 @@ def evolution_obstacle_avoidance():
     fit_avgs = log.select("avg")
     fit_maxs = log.select("max")
 
+    save_date = datetime.now().strftime('%m-%d-%H-%M')
+
     plot_single_run(
         gen,
         fit_mins,
         fit_avgs,
         fit_maxs,
         ratio=0.35,
-        save='../images/evolved-ostacle.pdf')
+        save='../images/'+save_date+'-evolved-obstacle.pdf')
 
     if (vrep.simxFinish(client_id) == -1):
         print('Evolutionary program failed to exit\n')
         return
-
 
 evolution_obstacle_avoidance()
