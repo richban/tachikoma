@@ -120,7 +120,7 @@ class EvolvedRobot(Robot):
             self.chromosome, self.wheel_speeds, self.norm_wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
 
     def loop(self):
-        wheelspeed = np.array([0, 0])
+        wheelspeed = np.array([0.0, 0.0])
         self.wheel_speeds = np.array([])
         self.sensor_activation = np.array([])
         self.norm_wheel_speeds = np.array([])
@@ -145,7 +145,7 @@ class EvolvedRobot(Robot):
         self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, X_MIN, X_MAX))
 
         self.set_motors(*list(self.wheel_speeds))
-        time.sleep(0.1) # loop executes once every 0.1 seconds
+        time.sleep(0.1) # loop executes once every 0.2 seconds
 
     @property
     def chromosome_size(self):

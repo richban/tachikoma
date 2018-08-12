@@ -19,17 +19,17 @@ RUNTIME = 24
 
 # GENOME TYPE
 MINMAX = 5
-MIN = -3
-MAX = 3
+MIN = -3.0
+MAX = 3.0
 
 # EVOLUTION
-POPULATION = 2
-N_GENERATIONS = 2
+POPULATION = 80
+N_GENERATIONS = 100
 # CXPB  is the probability with which two individuals
 # are crossed
 #
 # MUTPB is the probability for mutating an individual
-CXPB = 0.5
+CXPB = 0.1
 MUTPB = 0.2
 
 def evolution_obstacle_avoidance():
@@ -66,13 +66,13 @@ def evolution_obstacle_avoidance():
     history = tools.History()
 
     # Attribute generator random
-    toolbox.register("attr_int", random.randint, MIN, MAX)
+    toolbox.register("attr_float", random.uniform, MIN, MAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
         tools.initRepeat,
         creator.Individual,
-        toolbox.attr_int,
+        toolbox.attr_float,
         n=robot.chromosome_size)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)
