@@ -13,7 +13,7 @@ from robot import EvolvedRobot
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
 RUNTIME = 10
-N_GENERATIONS = 2
+N_GENERATIONS = 50
 global client_id
 
 
@@ -93,15 +93,23 @@ def run(config_file):
                     client_id, collision_handle, collision_mode)
                 first_collision_check = False
 
-                output = net.activate(individual.sensor_activation)
-                scaled_output = np.array(output) * 48
+                output = np.around(net.activate(individual.sensor_activation), 4)
+                scaled_output = output * 48
                 individual.set_motors(*list(scaled_output))
+
+                # print("Output: ", output)
+                # print("Scaled output: ", np.around(scaled_output, 4))
+                # print("V: ", np.around(((output[0] + output[1]) / 2), 4))
+                # print("Pleasure: ", (1 - (np.sqrt(np.absolute(output[0] - output[1])))))
+                # print("Pain: ", (np.absolute(np.amin(individual.sensor_activation - 1))))
 
                 # Fitness_t
                 fitness_t = np.append(fitness_t,
                     ((output[0] + output[1]) / 2) *
                     (1 - (np.sqrt(np.absolute(output[0] - output[1])))) *
                     (np.absolute(np.amin(individual.sensor_activation - 1))))
+
+                # print("fitness_t: ", fitness_t)
 
 
 
@@ -135,7 +143,10 @@ def run(config_file):
     print('\nOutput:')
     winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
-    node_names = {-1:'A', -2: 'B', 0:'A XOR B'}
+    node_names = {-1:'A', -2: 'B', -3:'C', -4:'D', -5:'E',
+                    -6:'F', -7: 'G', -8:'H', -9:'I', -10:'J',
+                    -11:'K', -12: 'L', -13:'M', -14:'N', -15:'O',
+                    -16: 'P', 0:'LEFT', 1:'RIGHT',}
     visualize.draw_net(config, winner, True, node_names=node_names)
     visualize.plot_stats(stats, ylog=False, view=True)
     visualize.plot_species(stats, view=True)
