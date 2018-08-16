@@ -115,7 +115,7 @@ class EvolvedRobot(Robot):
         self.sensor_activation = np.array([])
         self.norm_wheel_speeds = np.array([])
 
-    def __repr__(self):
+    def __str__(self):
         return "Chromosome: %s\n WheelSpeed: %s\n Normalized Speed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
             self.chromosome, self.wheel_speeds, self.norm_wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
 

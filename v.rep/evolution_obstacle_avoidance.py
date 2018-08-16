@@ -30,7 +30,7 @@ N_GENERATIONS = 100
 #
 # MUTPB is the probability for mutating an individual
 CXPB = 0.1
-MUTPB = 0.2
+MUTPB = 0.3
 
 def evolution_obstacle_avoidance():
     print('Evolutionary program started!')
@@ -133,6 +133,10 @@ def evolution_obstacle_avoidance():
 
         # Fitness
         fitness = [np.sum(fitness_t)]
+
+        if fitness[0] > 10:
+            with open('debugging.txt', "a") as f:
+                f.write(f"{individual} {fitness}")
 
         print(
             "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
