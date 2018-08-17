@@ -129,7 +129,6 @@ def evolution_obstacle_avoidance():
 
             collisionDetected, collision = vrep.simxReadCollision(
                 client_id, collision_handle, collision_mode)
-            print(collision)
             first_collision_check = False
 
         # Fitness
