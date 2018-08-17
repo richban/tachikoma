@@ -30,7 +30,7 @@ N_GENERATIONS = 100
 #
 # MUTPB is the probability for mutating an individual
 CXPB = 0.1
-MUTPB = 0.3
+MUTPB = 0.2
 
 def evolution_obstacle_avoidance():
     print('Evolutionary program started!')
@@ -97,7 +97,7 @@ def evolution_obstacle_avoidance():
 
         # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
-            client_id, "robot_collision", vrep.simx_opmode_blocking)
+            client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
         collision = False
         first_collision_check = True
 
@@ -129,6 +129,7 @@ def evolution_obstacle_avoidance():
 
             collisionDetected, collision = vrep.simxReadCollision(
                 client_id, collision_handle, collision_mode)
+            print(collision)
             first_collision_check = False
 
         # Fitness
@@ -136,7 +137,7 @@ def evolution_obstacle_avoidance():
 
         if fitness[0] > 10:
             with open('debugging.txt', "a") as f:
-                f.write(f"{individual} {fitness}")
+                f.write(f"{individual} {fitnes}\n")
 
         print(
             "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
