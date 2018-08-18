@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from sklearn.preprocessing import normalize
 from sklearn import preprocessing
 import numpy as np
+import pickle
 
 PI = math.pi
 NUM_SENSORS = 16
@@ -14,6 +15,7 @@ OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
 X_MIN = -48
 X_MAX = 48
+
 
 class Robot:
 
@@ -104,6 +106,10 @@ class Robot:
         returnCode, (x, y, z) = vrep.simxGetObjectPosition(
             self.client_id, self.body, -1, self.op_mode)
         return x, y
+
+    def save_robot(self, filename):
+        with open(filename, 'wb') as robot:
+            pickle.dump(self, robot)
 
 
 class EvolvedRobot(Robot):
@@ -210,15 +216,14 @@ def test_robot(robot):
             # print(s, detectedPoint)
 
         fitness_t = np.append(fitness_t,
-            ((wheel_speeds[0] +
-             wheel_speeds[1]) / 2) *
+            ((wheel_speeds[0] + wheel_speeds[1]) / 2) *
             (1 - (np.sqrt(np.absolute(
                 wheel_speeds[0] -
                 wheel_speeds[1])))) *
             (np.absolute(sensors_val - 1)))
 
         print("WheelSpeed ", wheel_speeds[0], wheel_speeds[1])
-        print("Center ", ((wheel_speeds[0]+wheel_speeds[1])/ 2))
+        print("Center ", ((wheel_speeds[0]+wheel_speeds[1]) / 2))
         print("Abs penalized wheel ", np.absolute(wheel_speeds[0]-wheel_speeds[1]))
         print("Sqrt penalized wheel ", (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1]))))
         print("penalized wheel ", (1 - (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1])))))

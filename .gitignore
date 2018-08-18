@@ -8,5 +8,10 @@ neat-checkpoint-*
 *.aux
 *.jpg
 *.pdf
+*.png
 thesis.prep.report*
 */debugging.txt
+*.bak
+.ipynb_checkpoints
+*.py[co]
+__pycache__
