@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from sklearn.preprocessing import normalize
 from sklearn import preprocessing
 import numpy as np
+import pickle
 
 PI = math.pi
 NUM_SENSORS = 16
@@ -14,6 +15,7 @@ OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
 X_MIN = -48
 X_MAX = 48
+
 
 class Robot:
 
@@ -105,6 +107,10 @@ class Robot:
             self.client_id, self.body, -1, self.op_mode)
         return x, y
 
+    def save_robot(self, filename):
+        with open(filename, 'wb') as robot:
+            pickle.dump(self, robot)
+
 
 class EvolvedRobot(Robot):
     def __init__(self, chromosome, client_id, id, op_mode):
@@ -115,12 +121,12 @@ class EvolvedRobot(Robot):
         self.sensor_activation = np.array([])
         self.norm_wheel_speeds = np.array([])
 
-    def __repr__(self):
+    def __str__(self):
         return "Chromosome: %s\n WheelSpeed: %s\n Normalized Speed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
             self.chromosome, self.wheel_speeds, self.norm_wheel_speeds, self.sensor_activation, np.amin(self.sensor_activation))
 
     def loop(self):
-        wheelspeed = np.array([0, 0])
+        wheelspeed = np.array([0.0, 0.0])
         self.wheel_speeds = np.array([])
         self.sensor_activation = np.array([])
         self.norm_wheel_speeds = np.array([])
@@ -145,7 +151,7 @@ class EvolvedRobot(Robot):
         self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, X_MIN, X_MAX))
 
         self.set_motors(*list(self.wheel_speeds))
-        time.sleep(0.1) # loop executes once every 0.1 seconds
+        time.sleep(0.1) # loop executes once every 0.2 seconds
 
     def neuro_loop(self):
         self.sensor_activation = np.array([])
@@ -218,15 +224,14 @@ def test_robot(robot):
             # print(s, detectedPoint)
 
         fitness_t = np.append(fitness_t,
-            ((wheel_speeds[0] +
-             wheel_speeds[1]) / 2) *
+            ((wheel_speeds[0] + wheel_speeds[1]) / 2) *
             (1 - (np.sqrt(np.absolute(
                 wheel_speeds[0] -
                 wheel_speeds[1])))) *
             (np.absolute(sensors_val - 1)))
 
         print("WheelSpeed ", wheel_speeds[0], wheel_speeds[1])
-        print("Center ", ((wheel_speeds[0]+wheel_speeds[1])/ 2))
+        print("Center ", ((wheel_speeds[0]+wheel_speeds[1]) / 2))
         print("Abs penalized wheel ", np.absolute(wheel_speeds[0]-wheel_speeds[1]))
         print("Sqrt penalized wheel ", (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1]))))
         print("penalized wheel ", (1 - (np.sqrt(np.absolute(wheel_speeds[0]-wheel_speeds[1])))))

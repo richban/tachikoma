@@ -2,13 +2,13 @@ import random
 import vrep
 import numpy as np
 import time
+import uuid
+import os
 from deap import base, creator, tools, algorithms
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import networkx
 import argparse
-
-
 from robot import EvolvedRobot
 from eaplots import plot_single_run
 
@@ -19,18 +19,24 @@ RUNTIME = 24
 
 # GENOME TYPE
 MINMAX = 5
-MIN = -3
-MAX = 3
+MIN = -3.0
+MAX = 3.0
 
 # EVOLUTION
-POPULATION = 2
-N_GENERATIONS = 2
+POPULATION = 80
+N_GENERATIONS = 50
 # CXPB  is the probability with which two individuals
 # are crossed
 #
 # MUTPB is the probability for mutating an individual
-CXPB = 0.5
+CXPB = 0.1
 MUTPB = 0.2
+
+PATH = './data/' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '/'
+
+if not os.path.exists(PATH):
+    os.makedirs(PATH)
+
 
 def evolution_obstacle_avoidance():
     print('Evolutionary program started!')
@@ -52,7 +58,6 @@ def evolution_obstacle_avoidance():
 
     print('Connected to remote API server')
 
-
     robot = EvolvedRobot([], client_id=client_id, id=None, op_mode=OP_MODE)
 
     # Creating the appropriate type of the problem
@@ -66,13 +71,13 @@ def evolution_obstacle_avoidance():
     history = tools.History()
 
     # Attribute generator random
-    toolbox.register("attr_int", random.randint, MIN, MAX)
+    toolbox.register("attr_float", random.uniform, MIN, MAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
         "individual",
         tools.initRepeat,
         creator.Individual,
-        toolbox.attr_int,
+        toolbox.attr_float,
         n=robot.chromosome_size)
     toolbox.register("population", tools.initRepeat, list, toolbox.individual)
     toolbox.register("map", map)
@@ -84,7 +89,7 @@ def evolution_obstacle_avoidance():
             print('Program ended\n')
             return
 
-        print("Starting simulation")
+        # print("Starting simulation")
 
         individual = EvolvedRobot(
             individual,
@@ -93,15 +98,16 @@ def evolution_obstacle_avoidance():
             op_mode=OP_MODE)
 
         start_position = None
-        fitness_t = np.array([])
+        fitness_agg = np.array([])
 
         # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
-            client_id, "robot_collision", vrep.simx_opmode_blocking)
+            client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
         collision = False
         first_collision_check = True
 
         now = datetime.now()
+        id = uuid.uuid1()
 
         while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
 
@@ -110,16 +116,19 @@ def evolution_obstacle_avoidance():
 
             individual.loop()
 
-            # print(individual)
+            # Fitness function; each feature;
+            # V - wheel center
+            V = ((individual.norm_wheel_speeds[0] + individual.norm_wheel_speeds[1]) / 2)
+            # pleasure - straight movements
+            pleasure = (1 - (np.sqrt(np.absolute(individual.norm_wheel_speeds[0] - individual.norm_wheel_speeds[1]))))
+            # pain - closer to an obstacle more pain
+            pain = (np.absolute(np.amin(individual.sensor_activation)))
+            # fitness_t at time stamp
+            fitness_t = V * pleasure * pain
+            fitness_agg = np.append(fitness_agg, fitness_t)
 
-            fitness_t = np.append(fitness_t,
-                ((individual.norm_wheel_speeds[0] +
-                 individual.norm_wheel_speeds[1]) / 2) *
-                (1 - (np.sqrt(np.absolute(
-                    individual.norm_wheel_speeds[0] -
-                    individual.norm_wheel_speeds[1])))) *
-                (np.absolute(np.amin(individual.sensor_activation - 1))))
-
+            with open(PATH + str(id)+"_fitness.txt", "a") as f:
+                f.write(f"{str(id)},{individual.norm_wheel_speeds[0]},{individual.norm_wheel_speeds[1]},{np.amin(individual.sensor_activation)},{V},{pleasure},{pain},{fitness_t} \n")
 
             # collision detection
             if first_collision_check:
@@ -132,15 +141,12 @@ def evolution_obstacle_avoidance():
             first_collision_check = False
 
         # Fitness
-        fitness = [np.sum(fitness_t)]
+        fitness = [np.sum(fitness_agg)]
 
-        print(
-            "Finished simulation. Went from [%f,%f] to [%f,%f] with fitness: %f" %
-            (start_position[0],
-             start_position[1],
-             individual.position[0],
-             individual.position[1],
-             fitness[0]))
+        if fitness[0] > 10:
+            individual.save_robot(PATH + str(id)+"_robot")
+
+        print("%s with fitness: %f" % (str(id), fitness[0]))
 
         if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
             print('Failed to stop the simulation\n')
@@ -193,7 +199,6 @@ def evolution_obstacle_avoidance():
     networkx.draw(graph, node_color=colors)
     plt.savefig('../images/genealogy_tree.pdf')
 
-
     # Evolution records as a chronological list of dictionaries
     gen = log.select("gen")
     fit_mins = log.select("min")
@@ -213,5 +218,11 @@ def evolution_obstacle_avoidance():
     if (vrep.simxFinish(client_id) == -1):
         print('Evolutionary program failed to exit\n')
         return
+
+
+def dump_data(V, pleasure, pain, fitness_t, individual: EvolvedRobot):
+    with open('debugging.txt', "a") as f:
+        f.write(f"{individual} {fitness} \n")
+
 
 evolution_obstacle_avoidance()

@@ -38,26 +38,52 @@
 \acmDOI{}
 \begin{document}
 \begin{abstract}
-The purpose of this project is to compare different evolution strategies to the evolution and optimization of  Brainteberg vehicle  using classical evolutionary algorithms and neuroevolution. Braitenberg vehicles are special class of agents that can autonomously move around based on its sensor inputs. Braintenberg vehicles are controlled by number of parameters, depending how the sensors and wheels are connected we can exhibit different behaviors. We show how basic evolutionary algorithms (EA’s) and neuroevolution can emulate a Braintenberg vehicle in a way that it avoids obstacles. Although the experiments will consists of a simple task of navigation and obstacle avoidance, our major goal of the project on autonomous agents is to emphasise the main differences  of both approaches. V-Rep simulator will be used to test and track the evolution, however we intend to test on a real physical agent.
+The purpose of this project is to compare different evolution strategies to the evolution and optimization of Brainteberg vehicle using classical evolutionary algorithms and neuroevolution. Braitenberg vehicles are special class of agents that can autonomously move around based on its sensor inputs. Braintenberg vehicles are controlled by number of parameters, depending how the sensors and wheels are connected we can exhibit different behaviors. We show how basic evolutionary algorithms (EA’s) and neuroevolution can emulate a Braintenberg vehicle in a way that it avoids obstacles. Although the experiments will consists of a simple task of navigation and obstacle avoidance, our major goal of the project on autonomous agents is to emphasise the main differences  of both approaches. V-Rep simulator will be used to test and track the evolution, however we intend to test on a real physical agent.
 	\end{abstract}
 \maketitle
 
 
 \section{Introduction}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+Autonumous agents are characterized by self-sufficiency and reliable self-adaption to the characteristics of the environment without external supervision or control \footnote{D. J. McFarland. Autonomy and self-sufficiency in robots. AI-Memo 92-03, Artificial Intelligence Laboratory, Vrije Universiteit Brussel, Belgium, 1992.}. The adaption process takes place while the agent operates in its own environment. Self-sufficent means that the agent is able to sense its own interanal status. An example is a vacuum cleaning robot (Xiaomi Mi Robot\footnote{\url{https://xiaomi-mi.com/appliances/xiaomi-mijia-roborock-robot-vacuum-cleaner-2-white/}}) that can maintain its internal energy level and when its batteries are on low it returns to docking station to get charged. All these features of autonumous agents cannot be pre-defined, but should rather emerge from the interaction between the robot and its own environment. Autonumous agent are quipped with sensors and actuators. An agent perceives its environment trought sensors like proximity, infrared sensors and it interacts with its environment by using actuators. 
+
+Major steps have been already taken for building autonumous systems using classical AI approach. However, recently a new novel approach has emerged, termed \emph{behavior-based-robotics}. As contrased to classical \emph{Knowledge-Based Artificial Intelligence} which is more concered with a high level of definition of the environment and of the knowledge required by the system, behavior based robotics emphisize the importance of continuous interaction between the robot and its own environment for the dynamic development of the control system \footnote{Springer Handbook of Robotics}.
+
+Beside these solutions, some other researchers have fullfilled the requirements of learning and adaption by employing various sorts of neural networks to control a robot. A somehow different approach is taken by researchers that try to evolve the robot control system using evolutionary algorithms. Rather than design a solution, they describe the robot characteristics in form of an chromosome. \emph{Evolutionary algorithms} focus on global optimization problems inspired by biological evolution. EA are population based, meta heuristic search procedures that incorporate genetic operators. Algorithm maintais a population of candidate solutions which is subjected to natural selection and mutation. In each generation, a set of offspring is generated by applying bio operatos such as \emph{mutation, crossover, selection}. Each generation, the fitness of every individual in the population is evaluated. More fit individuals are stochastically selected from the current population, and each individual's \emph{genome} is modified (recombined or randomly mutated) to form a new generation. The algorithm terminates when either the maximum number of generations has been produced, or fitness level has been reached for the population.
+
+Within this approach, a number of researches have successfully employed and evolutionary procedure to develop a robot control system \footnote{\url{http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.6938}}. Altough the evolutionary procedure is well know, it is not a straightforward task to apply, as we will see later...
+
+
+In this paper we describe the evolution of Brainteberg like obstacle avoidance vehicle using classical evolutionary algorithm and neuroevolution. In all our experiments the evolutionary procedure is carried out in a robot simulator called V-Rep \footnote{\url{http://www.coppeliarobotics.com/}}.
+
+We will describe two experiments...
+
 
 \section{The Robot}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
- 
+In the experiments reported in this paper, the simulator (robot) was controlled through external client. The remote API functions are interacting with V-REP (robot) via socket communication. A detailed description of V-REP and the remote API \footnote{http://www.coppeliarobotics.com/helpFiles/en/remoteApiOverview.htm} can be found online.
+
+Pionner P3DX was choosen for the purpose of the experiments. The robot is equipped with 16 proximity sensors and two motors. The motors can be controlled independently of each other by sending fucntion calls to the simulator. The speed values are in range [-48, 48]; inside the simulator, these values are normalized such that they are in the range [-1,1]. The proximity sensor readings are type of float and the values are in range [0, 1]. The sensors give input values for detectable objects distances between 0.05 mm and 1 m. A sensor value of 0.1 indicates that the robot is 0.1 m away from the object, and sensor value of 0 indicates that the robot does not receive any input from the proximity sensors.
+
+\begin{figure}[H]
+  \includegraphics[width=0.66\linewidth]{pioneer.PNG}
+  \caption{The Pioneer P3DX robot}
+  \label{fig:pioneer-robot}
+\end{figure}
+
 \section{Braitenberg Vehicles}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
 \section{Experimental Setup}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+\begin{figure}[H]
+  \includegraphics[width=0.66\linewidth]{scene.PNG}
+  \caption{The environment. The robot indicated position is the starting poing of every simulation as well for the fitness evaluation.}
+  \label{fig:pioneer-robot}
+\end{figure}
+
+Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringill viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
 \section{Experiments}
 
@@ -76,20 +102,5 @@ Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 \end{abstract}
 
-\begin{thebibliography}{9}
-\bibitem{herbert} 
-Rodney A. Brooks, Jonathan H. Connell, and Peter Ning, Herbert: A second generation mobile robot, MIT AI Memo 1016 (January 1988)
-
-\bibitem{springrobotics} 
-Springer Handbook of Robotics, Bruno Siciliano, Oussama Khatib (Eds.)
-
-\bibitem{zuboff} 
-The Robotics Primer, Maja J Mataric
-\\\texttt{http://www.ict.griffith.edu.au/~vlad/teaching/robotics.d/RESOURCES/mataric-primer.pdf}
-
-\bibitem{datax} 
-Computational Agroecology: Sustainable Food Ecosystem Design. Barath Raghavan. ICSI. Berkeley, CA, USA barath@icsi.berkeley.edu. Juliet Norton.\\\texttt{https://www1.icsi.berkeley.edu/~barath/papers/agroecology-chi16.pdf}
-
-\end{thebibliography}
 
 \end{document}

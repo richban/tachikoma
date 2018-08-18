@@ -1,10 +1,5 @@
 .DS_Store
 *.pyc
-<<<<<<< HEAD
-neat-checkpoint*
-*.svg
-*.gv
-=======
 neat-checkpoint-*
 *.svg
 *.gv
@@ -13,5 +8,10 @@ neat-checkpoint-*
 *.aux
 *.jpg
 *.pdf
+*.png
 thesis.prep.report*
->>>>>>> feature/fitness
+*/debugging.txt
+*.bak
+.ipynb_checkpoints
+*.py[co]
+__pycache__
