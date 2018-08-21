@@ -140,7 +140,7 @@ class EvolvedRobot(Robot):
             else:
                 wheelspeed += np.int16(
                     np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
-                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                self.sensor_activation = np.append(self.sensor_activation, 0)
 
         # normalize sensor data in range [0, 1]
         # self.sensor_activation = normalize(self.sensor_activation[:,np.newaxis], axis=0)

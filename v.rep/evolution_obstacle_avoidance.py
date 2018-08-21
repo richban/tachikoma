@@ -32,7 +32,7 @@ N_GENERATIONS = 50
 CXPB = 0.1
 MUTPB = 0.2
 
-PATH = './data/' + datetime.now().strftime("%Y-%m-%d %H:%M:%S") + '/'
+PATH = './data/evolution/' + datetime.now().strftime("%Y-%m-%d") + '/'
 
 if not os.path.exists(PATH):
     os.makedirs(PATH)
@@ -122,16 +122,16 @@ def evolution_obstacle_avoidance():
             # pleasure - straight movements
             pleasure = (1 - (np.sqrt(np.absolute(individual.norm_wheel_speeds[0] - individual.norm_wheel_speeds[1]))))
             # pain - closer to an obstacle more pain
-            if np.amin(individual.sensor_activation) is np.nan:
+            try:
+                pain = np.amin(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
+            except ValueError:
                 pain = 1
-            else:
-                pain = np.amin(individual.sensor_activation)
             # fitness_t at time stamp
             fitness_t = V * pleasure * pain
             fitness_agg = np.append(fitness_agg, fitness_t)
 
             with open(PATH + str(id)+"_fitness.txt", "a") as f:
-                f.write(f"{str(id)},{individual.norm_wheel_speeds[0]},{individual.norm_wheel_speeds[1]},{np.amin(individual.sensor_activation)},{V},{pleasure},{pain},{fitness_t} \n")
+                f.write(f"{str(id)},{individual.norm_wheel_speeds[0]},{individual.norm_wheel_speeds[1]},{V},{pleasure},{pain},{fitness_t} \n")
 
             # collision detection
             if first_collision_check:
