@@ -156,7 +156,10 @@ class EvolvedRobot(Robot):
     def neuro_loop(self):
         self.sensor_activation = np.array([])
         for i, sensor in enumerate(self.prox_sensors):
-            self.sensor_activation = np.append(self.sensor_activation, np.around(self.get_sensor_distance(sensor), 4))
+            if self.get_sensor_state(sensor):
+                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+            else:
+                self.sensor_activation = np.append(self.sensor_activation, 0)
 
         time.sleep(0.1)
 

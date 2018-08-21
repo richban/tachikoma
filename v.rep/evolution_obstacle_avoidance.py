@@ -122,7 +122,10 @@ def evolution_obstacle_avoidance():
             # pleasure - straight movements
             pleasure = (1 - (np.sqrt(np.absolute(individual.norm_wheel_speeds[0] - individual.norm_wheel_speeds[1]))))
             # pain - closer to an obstacle more pain
-            pain = (np.absolute(np.amin(individual.sensor_activation)))
+            if np.amin(individual.sensor_activation) is np.nan:
+                pain = 1
+            else:
+                pain = np.amin(individual.sensor_activation)
             # fitness_t at time stamp
             fitness_t = V * pleasure * pain
             fitness_agg = np.append(fitness_agg, fitness_t)
