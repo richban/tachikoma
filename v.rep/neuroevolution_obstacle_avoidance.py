@@ -101,7 +101,6 @@ def run(config_file):
                 pleasure = (1 - (np.sqrt(np.absolute(output[0] - output[1]))))
                 # pain - closer to an obstacle more pain
                 try:
-                    print(individual.sensor_activation)
                     pain = np.amin(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
                 except ValueError:
                     pain = 1
