@@ -143,13 +143,23 @@ def evolution_obstacle_avoidance():
                 client_id, collision_handle, collision_mode)
             first_collision_check = False
 
-        # Fitness
-        fitness = [np.sum(fitness_agg)]
+        # aggregate fitness function 
+        fitness_aff = [np.sqrt(abs(np.array(individual.position)[0] -
+                        np.array(start_position)[0])**2 +
+                        abs(np.array(individual.position)[1] -
+                        np.array(start_position)[1])**2), ]
 
-        if fitness[0] > 10:
+        # behavarioral fitness function
+        fitness_bff = [np.sum(fitness_agg)]
+        
+        # tailored fitness function
+        fitness = fitness_bff[0] * fitness_aff[0]
+
+        print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
+
+
+        if fitness > 10:
             individual.save_robot(PATH + str(id)+"_robot")
-
-        print("%s with fitness: %f" % (str(id), fitness[0]))
 
         if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
             print('Failed to stop the simulation\n')
@@ -158,7 +168,7 @@ def evolution_obstacle_avoidance():
 
         time.sleep(1)
 
-        return fitness
+        return [fitness]
 
     # Register genetic operators
     # register the goal / fitness function

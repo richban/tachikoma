@@ -14,7 +14,7 @@ OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
 RUNTIME = 10
 N_GENERATIONS = 50
-WHEEL_SPEED_SCALE = 48
+WHEEL_SPEED_SCALE = 16
 global client_id
 
 PATH = './data/neat/' + datetime.now().strftime("%Y-%m-%d") + '/'
@@ -91,7 +91,7 @@ def run(config_file):
                 individual.neuro_loop()
 
                 output = net.activate(individual.sensor_activation)
-                scaled_output = np.multiply(output, 48)
+                scaled_output = np.multiply(output, WHEEL_SPEED_SCALE)
                 individual.set_motors(*list(scaled_output))
 
                 # Fitness function; each feature;
@@ -121,18 +121,28 @@ def run(config_file):
                     client_id, collision_handle, collision_mode)
                 first_collision_check = False
 
-            # Fitness
-            fitness = [np.sum(fitness_agg)]
 
-            print("%s with fitness: %f" % (str(id), fitness[0]))
+            # aggregate fitness function 
+            fitness_aff = [np.sqrt(abs(np.array(individual.position)[0] -
+                            np.array(start_position)[0])**2 +
+                            abs(np.array(individual.position)[1] -
+                            np.array(start_position)[1])**2), ]
+
+            # behavarioral fitness function
+            fitness_bff = [np.sum(fitness_agg)]
+            
+            # tailored fitness function
+            fitness = fitness_bff[0] * fitness_aff[0]
+
+            print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
 
             if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
                 print('Failed to stop the simulation\n')
                 print('Program ended\n')
                 return
 
-            genome.fitness = fitness[0]
             time.sleep(1)
+            genome.fitness = fitness
 
     # Run for up to N_GENERATIONS generations.
     winner = p.run(eval_genomes, N_GENERATIONS)

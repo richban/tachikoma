@@ -63,7 +63,7 @@ We will describe two experiments...
 
 In the experiments reported in this paper, the simulator (robot) was controlled through external client. The remote API functions are interacting with V-REP (robot) via socket communication. A detailed description of V-REP and the remote API \footnote{http://www.coppeliarobotics.com/helpFiles/en/remoteApiOverview.htm} can be found online.
 
-Pionner P3DX was choosen for the purpose of the experiments. The robot is equipped with 16 proximity sensors and two motors. The motors can be controlled independently of each other by sending fucntion calls to the simulator. The speed values are in range [-48, 48]; inside the simulator, these values are normalized such that they are in the range [-1,1]. The proximity sensor readings are type of float and the values are in range [0, 1]. The sensors give input values for detectable objects distances between 0.05 mm and 1 m. A sensor value of 0.1 indicates that the robot is 0.1 m away from the object, and sensor value of 0 indicates that the robot does not receive any input from the proximity sensors.
+Pionner P3DX was choosen for the purpose of the experiments. The robot is equipped with 16 proximity sensors and two motors. The motors can be controlled independently of each other by sending fucntion calls to the simulator. The speed values are in range [-48, 48]; inside the simulator, these values are normalized such that they are in the range [-1,1]. The proximity sensor readings are type of float and the values are in range [0, 1]. The sensors give input values for detectable objects distances between 0.05 mm and 1 m. A sensor value of 0.1 indicates that the robot is 0.1 m away from the object, and sensor value of 1 indicates that the robot does not receive any input from the proximity sensors.
 
 \begin{figure}[H]
   \includegraphics[width=0.66\linewidth]{pioneer.PNG}
@@ -73,7 +73,15 @@ Pionner P3DX was choosen for the purpose of the experiments. The robot is equipp
 
 \section{Braitenberg Vehicles}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+A Braitenberg vehicle is an agent that can autonomously move around based on its sensor inputs. The vehicle is equipped with primitive sensors that measure certain quality, and 2 motors which functions as actuators. Depending on how the sensors and motors are connected, the vehicle exhibits different behaviours. Thus the motion of the vehicle is directly controlled by the sensors. Yet the resulting bahaviour may appear complex or even intelligent \footnote{https://en.wikipedia.org/wiki/Braitenberg_vehicle}.
+
+Our control architecture was inspired by a Braitenberg type-3c vehicle. The sensor readings controls the motors via inhibitory and excitory connections. The key idea is that a sensor with high proximity activation accelerate the motor on the proximity sensor's side while slows down the motor on the opposite side. The presense of an obstacle leads to different motor speeds, which causes the robot to turn, spin, or even backing up. The activation of motor's is calculated by the following formula
+
+
+where IPi is the activation value of the proximity sensor i and wi denotes the genome that connects proximity IPi with motors. In the absence of obstacle the calculation of the motor's activation is similar given by
+
+
+
 
 \section{Experimental Setup}
 
