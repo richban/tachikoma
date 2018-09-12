@@ -12,8 +12,8 @@ from robot import EvolvedRobot
 
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
-RUNTIME = 10
-N_GENERATIONS = 50
+RUNTIME = 20
+N_GENERATIONS = 30
 WHEEL_SPEED_SCALE = 16
 global client_id
 

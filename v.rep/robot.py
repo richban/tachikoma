@@ -13,8 +13,8 @@ PORT_NUM = 19997
 RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
-X_MIN = -48
-X_MAX = 48
+X_MIN = 0
+X_MAX = 32
 
 
 class Robot:
@@ -133,22 +133,22 @@ class EvolvedRobot(Robot):
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                wheelspeed += np.int16(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
+                wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
                     self.get_sensor_distance(sensor)))
                 self.sensor_activation = np.append(
                     self.sensor_activation, self.get_sensor_distance(sensor))
             else:
-                wheelspeed += np.int16(
+                wheelspeed += np.float32(
                     np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
-                self.sensor_activation = np.append(self.sensor_activation, self.get_sensor_distance(sensor))
+                self.sensor_activation = np.append(self.sensor_activation, 0)
 
         # normalize sensor data in range [0, 1]
         # self.sensor_activation = normalize(self.sensor_activation[:,np.newaxis], axis=0)
-
+        
         # motor wheel wheel_speeds
         self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         # normalize wheelspeeds in range [-1, 1]
-        self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_1_1(wheelspeed, X_MIN, X_MAX))
+        self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_0_1(wheelspeed, X_MIN, X_MAX))
 
         self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1) # loop executes once every 0.2 seconds
@@ -210,7 +210,7 @@ def normalize_1_1(x, min, max):
     return np.array([((2 * ((x[0]-(min))/(max-(min)))) - 1), ((2 * ((x[1]-(min))/(max-(min)))) - 1)])
 
 def normalize_0_1(x, min, max):
-    return np.array([(x[0]-(min)/(max-(min))), (x[1]-(min)/(max-(min)))])
+    return np.array([(x[0]-(min))/(max-(min)), (x[1]-(min))/(max-(min))])
 
 
 def test_robot(robot):
