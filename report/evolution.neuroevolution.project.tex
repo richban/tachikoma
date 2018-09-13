@@ -55,8 +55,6 @@ Within this approach, a number of researches have successfully employed and evol
 
 In this paper we describe the evolution of Brainteberg like obstacle avoidance vehicle using classical evolutionary algorithm and neuroevolution. In all our experiments the evolutionary procedure is carried out in a robot simulator called V-Rep \footnote{\url{http://www.coppeliarobotics.com/}}.
 
-We will describe two experiments...
-
 
 \section{The Robot}
 
@@ -74,11 +72,14 @@ Pionner P3DX was choosen for the purpose of the experiments. The robot is equipp
 
 A Braitenberg vehicle is an agent that can autonomously move around based on its sensor inputs. The vehicle is equipped with primitive sensors that measure certain quality, and 2 motors which functions as actuators. Depending on how the sensors and motors are connected, the vehicle exhibits different behaviours. Thus the motion of the vehicle is directly controlled by the sensors. Yet the resulting bahaviour may appear complex or even intelligent \footnote{\url{https://en.wikipedia.org/wiki/Braitenberg_vehicle}}.
 
-Our control architecture was inspired by a Braitenberg type-3c vehicle. The sensor readings controls the motors via inhibitory and excitory connections. The key idea is that a sensor with high proximity activation accelerate the motor on the proximity sensor's side while slows down the motor on the opposite side. The presense of an obstacle leads to different motor speeds, which causes the robot to turn, spin, or even backing up. The activation of motor's is calculated by the following formula
+Our control architecture was inspired by a Braitenberg type-3c vehicle. The sensor readings controls the motors via inhibitory and excitory connections. The key idea is that a sensor with high proximity activation accelerate the motor on the proximity sensor's side while slows down the motor on the opposite side. The presense of an obstacle leads to different motor speeds, which causes the robot to turn, spin, or even backing up. The activation of motor's is calculated by the following formula:
+
+\[ M_{lr} = \sum_{i=1}^{16} P(i)w_{lr} \]
+
+where \(P{i}\) is the activation value of the proximity sensor \emph{i} and \(w_{lr}\) denotes the genome that connects proximity \(P{i}\) with motors. In the absence of obstacle the calculation of the motor's activation is similar, however in this case the activation value of the proximity sensor's is left out:
 
 
-where IPi is the activation value of the proximity sensor i and wi denotes the genome that connects proximity IPi with motors. In the absence of obstacle the calculation of the motor's activation is similar given by
-
+\[ M_{lr} = \sum_{i=1}^{16} w_{lr} \]
 
 
 
@@ -96,14 +97,21 @@ As already discussed, our goal was to develop a robot that could learn how to co
 
 \emph{Aggregate fitness function} have the lowest degree of knowledge and evaluate only what is achieved. In our case it relies on traveled distance. The procedure of how the robot accomplishes the task is irrelevant. The aggregate fitness function is defined by the distance that the robot traveled during the evaluation:
 
+\[ aff = \sqrt{|x_{start} - x_{stop}|^2 + |y_{start} - y_{stop}|^2} \]
+
 On the other hand \emph{behavioral fitness function} measures how the task is solved, hence it requires priori knowledge about options how the task can be solved. This way BFF also predetermine potential solutions and possibly exclude counterintuitive options \footnote{\url{https://dl.acm.org/citation.cfm?id=2754676}}. The \emph{bff} is a function of three variables, as follows:
 
 
-where \emph{V} is a average speed of the both wheels at a particular timestamp \emph{t}, \emph{deltaV} is the algebraic difference between the speed values of the wheels and \emph{I} is the activation value of the proximity sensor with the highest activity. The \emph{behavioral fitness function} has 3 components. The first component is the average of the two wheel speeds. The faster the robot moves the better it accomplishes the task. Second, the penalty term between the two speeds is minimized by defining ... The last component is ... plesure and rewards to stay away from obstacles. If the robot is getting closer to the obstacle, than it is interpretted as a penalty.
+\[ f_{t} = V_{t}(1-\Delta v)P_{t} \]
+
+\[ bff = \sum_{t=1}^{t_{max}} f_{t} \]
+
+
+where \(V_{t} = \frac{V_{l} + V_{}r}{2} \) is a average speed of the both wheels at a particular timestamp \emph{t}, \(|v_{l} - v_{r}|\) is the algebraic difference between the speed values of the wheels and \(P{t}\) is the activation value of the proximity sensor with the highest activity. The \emph{behavioral fitness function} has 3 components. The first component is the average of the two wheel speeds. The faster the robot moves the better it accomplishes the task. Second, the penalty term between the two speeds is minimized by \((1-\sqrt{\Delta v})\). The last component is plesure \(P{t}\) and rewards to stay away from obstacles. If the robot is getting closer to the obstacle, than it is interpretted as a penalty.
 
 Following our fitness function strategy we defined \emph{tailored fitness function} which combines the elements of behavioral and aggreate fitness functions. Thus the fitness function is defined as dot product of \emph{bff} and \emph{aff}:
 
-
+\[ fitness = aff * bff \]
 
 \section{Experiments}
 
