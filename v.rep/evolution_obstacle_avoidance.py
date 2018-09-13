@@ -19,8 +19,8 @@ RUNTIME = 24
 
 # GENOME TYPE
 MINMAX = 5
-MIN = 0.0
-MAX = 2.0
+MIN = -1.0
+MAX = 1.0
 
 # EVOLUTION
 POPULATION = 80
@@ -154,7 +154,7 @@ def evolution_obstacle_avoidance():
         fitness_bff = [np.sum(fitness_agg)]
         
         # tailored fitness function
-        fitness = fitness_bff[0] * fitness_aff[0]
+        fitness = fitness_bff[0] # * fitness_aff[0]
 
         print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
 

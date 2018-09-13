@@ -14,7 +14,7 @@ RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
 X_MIN = 0
-X_MAX = 32
+X_MAX = 16
 
 
 class Robot:
@@ -113,10 +113,13 @@ class Robot:
 
 
 class EvolvedRobot(Robot):
-    def __init__(self, chromosome, client_id, id, op_mode):
+    def __init__(self, chromosome, client_id, id, op_mode, noDetection=1.0, minDetection=0.05, initSpeed=2):
         super().__init__(client_id, id, op_mode)
         self.chromosome = chromosome
         self.fitness = 0
+        self.noDetection = noDetection
+        self.minDetection = minDetection
+        self.initSpeed = initSpeed
         self.wheel_speeds = np.array([])
         self.sensor_activation = np.array([])
         self.norm_wheel_speeds = np.array([])
@@ -133,10 +136,10 @@ class EvolvedRobot(Robot):
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(
-                    self.get_sensor_distance(sensor)))
-                self.sensor_activation = np.append(
-                    self.sensor_activation, self.get_sensor_distance(sensor))
+                # take into account the offset & range
+                activation = 1 - ((self.get_sensor_distance(sensor) - self.minDetection) / (self.noDetection - self.minDetection))
+                self.sensor_activation = np.append(self.sensor_activation, activation)
+                wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(activation))
             else:
                 wheelspeed += np.float32(
                     np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
@@ -149,7 +152,6 @@ class EvolvedRobot(Robot):
         self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
         # normalize wheelspeeds in range [-1, 1]
         self.norm_wheel_speeds = np.append(self.norm_wheel_speeds, normalize_0_1(wheelspeed, X_MIN, X_MAX))
-
         self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1) # loop executes once every 0.2 seconds
 
