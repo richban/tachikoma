@@ -136,7 +136,7 @@ class EvolvedRobot(Robot):
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
-                # take into account the offset & range
+                # take into account the offset & range; rescale activation
                 activation = 1 - ((self.get_sensor_distance(sensor) - self.minDetection) / (self.noDetection - self.minDetection))
                 self.sensor_activation = np.append(self.sensor_activation, activation)
                 wheelspeed += np.float32(np.array(self.chromosome[i * 4:i * 4 + 2]) * np.array(activation))
@@ -213,6 +213,12 @@ def normalize_1_1(x, min, max):
 
 def normalize_0_1(x, min, max):
     return np.array([(x[0]-(min))/(max-(min)), (x[1]-(min))/(max-(min))])
+
+def interval_map(x, in_min, in_max, out_min, out_max):
+        return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
+
+def normalize(x, x_min, x_max):
+        return interval_map(x, x_min, x_max, 0.0, 1.0)
 
 
 def test_robot(robot):
