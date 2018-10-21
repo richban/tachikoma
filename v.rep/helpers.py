@@ -12,8 +12,8 @@ def interval_map(x, in_min, in_max, out_min, out_max):
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 
 
-def normalize(x, x_min, x_max):
-    return interval_map(x, x_min, x_max, 0.0, 1.0)
+def normalize(x, x_min, x_max, a=0.0, b=1.0):
+    return interval_map(x, x_min, x_max, a, b)
 
 def scale(x, a, b):
     return interval_map(x, 0.0, 1.0, a, b)

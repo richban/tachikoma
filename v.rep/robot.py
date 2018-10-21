@@ -6,7 +6,7 @@ from sklearn import preprocessing
 import numpy as np
 import pickle
 import logging
-from helpers import sensors_offset
+from helpers import sensors_offset, normalize
 
 PI = math.pi
 NUM_SENSORS = 16
@@ -15,7 +15,7 @@ RUNTIME = 20
 OP_MODE = vrep.simx_opmode_oneshot_wait
 max_abs_scaler = preprocessing.MaxAbsScaler((-1, 1))
 X_MIN = 0
-X_MAX = 16
+X_MAX = 48
 DEBUG = False
 
 
@@ -196,9 +196,6 @@ class EvolvedRobot(Robot):
 
     def loop(self):
         wheelspeed = np.array([0.0, 0.0])
-        self.wheel_speeds = np.array([])
-        self.sensor_activation = np.array([])
-        self.norm_wheel_speeds = np.array([])
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
@@ -212,11 +209,15 @@ class EvolvedRobot(Robot):
                     np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
                 self.sensor_activation = np.append(self.sensor_activation, 0)
 
-        # motor wheel wheel_speeds
-        self.wheel_speeds = np.append(self.wheel_speeds, wheelspeed)
-        # normalize wheelspeeds in range [-1, 1]
-        self.norm_wheel_speeds = np.append(
-            self.norm_wheel_speeds, normalize_0_1(wheelspeed, X_MIN, X_MAX))
+
+        # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
+        self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 2.0) for xi in wheelspeed])
+        if DEBUG: self.logger.info(f'WheelSpeed {wheelspeed}')
+
+        # normalize wheelspeeds in range [0.0, 1.0] - fitness function
+        self.norm_wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX) for xi in wheelspeed])
+        if DEBUG: self.logger.info(f'Normalized WheelSpeed {self.norm_wheel_speeds}')
+
         self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1)  # loop executes once every 0.2 seconds
 

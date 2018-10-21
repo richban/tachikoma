@@ -11,6 +11,8 @@ import networkx
 import argparse
 from robot import EvolvedRobot
 from eaplots import plot_single_run
+from helpers import sensors_offset, normalize_0_1, f_wheel_center, f_straight_movements, f_pain
+
 
 # VREP
 PORT_NUM = 19997
@@ -20,11 +22,11 @@ RUNTIME = 24
 # GENOME TYPE
 MINMAX = 5
 MIN = 0.0
-MAX = 1.0
+MAX = 3.0
 
 # EVOLUTION
-POPULATION = 80
-N_GENERATIONS = 50
+POPULATION = 30
+N_GENERATIONS = 20
 # CXPB  is the probability with which two individuals
 # are crossed
 #
@@ -33,7 +35,7 @@ CXPB = 0.1
 MUTPB = 0.2
 
 PATH = './data/ea/' + datetime.now().strftime("%Y-%m-%d") + '/'
-
+DEBUG = False
 
 if not os.path.exists(PATH):
     os.makedirs(PATH)
@@ -110,6 +112,9 @@ def evolution_obstacle_avoidance():
         now = datetime.now()
         id = uuid.uuid1()
 
+        if DEBUG: individual.logger.info(f'Chromosome {self.chromosome}')
+
+
         while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
 
             if start_position is None:
@@ -119,15 +124,18 @@ def evolution_obstacle_avoidance():
 
             # Fitness function; each feature;
             # V - wheel center
-            V = ((individual.norm_wheel_speeds[0] + individual.norm_wheel_speeds[1]) / 2)
+            V = f_wheel_center(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
+            if DEBUG: individual.logger.info(f'f_wheel_center {V}')
+
             # pleasure - straight movements
-            pleasure = (1 - (np.sqrt(np.absolute(individual.norm_wheel_speeds[0] - individual.norm_wheel_speeds[1]))))
+            pleasure = f_straight_movements(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
+            if DEBUG: individual.logger.info(f'f_straight_movements {pleasure}')
+
             # pain - closer to an obstacle more pain
-            try:
-                pain = 1 - np.amax(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
-            except ValueError:
-                pain = 1
-            # fitness_t at time stamp
+            pain = f_pain(individual.sensor_activation)
+            if DEBUG: individual.logger.info(f'f_pain {pain}')
+
+            #  fitness_t at time stamp
             fitness_t = V * pleasure * pain
             fitness_agg = np.append(fitness_agg, fitness_t)
 
@@ -144,7 +152,7 @@ def evolution_obstacle_avoidance():
                 client_id, collision_handle, collision_mode)
             first_collision_check = False
 
-        # aggregate fitness function 
+        # aggregate fitness function
         fitness_aff = [np.sqrt(abs(np.array(individual.position)[0] -
                         np.array(start_position)[0])**2 +
                         abs(np.array(individual.position)[1] -
@@ -152,7 +160,7 @@ def evolution_obstacle_avoidance():
 
         # behavarioral fitness function
         fitness_bff = [np.sum(fitness_agg)]
-        
+
         # tailored fitness function
         fitness = fitness_bff[0] # * fitness_aff[0]
 
