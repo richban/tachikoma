@@ -8,13 +8,14 @@ import time
 import uuid
 import visualize
 from robot import EvolvedRobot
-
+from helpers import f_wheel_center, f_straight_movements, f_pain, scale
 
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
 RUNTIME = 20
 N_GENERATIONS = 20
 WHEEL_SPEED_SCALE = 16
+DEBUG = False
 global client_id
 
 PATH = './data/neat/' + datetime.now().strftime("%Y-%m-%d") + '/'
@@ -90,28 +91,6 @@ def run(config_file):
 
                 individual.neuro_loop()
 
-                output = net.activate(individual.sensor_activation)
-                scaled_output = np.multiply(output, WHEEL_SPEED_SCALE)
-                individual.set_motors(*list(scaled_output))
-
-                # Fitness function; each feature;
-                # V - wheel center
-                V = ((output[0] + output[1]) / 2)
-                # pleasure - straight movements
-                pleasure = (1 - (np.sqrt(np.absolute(output[0] - output[1]))))
-                # pain - closer to an obstacle more pain
-                try:
-                    pain = np.amin(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
-                except ValueError:
-                    pain = 1
-                #  fitness_t at time stamp
-                fitness_t = V * pleasure * pain
-                fitness_agg = np.append(fitness_agg, fitness_t)
-
-                with open(PATH + str(id) + "_fitness.txt", "a") as f:
-                    f.write(
-                        f"{str(id)},{output[0]},{output[1]},{scaled_output[0]},{scaled_output[1]},{V},{pleasure},{pain},{fitness_t} \n")
-
                 if first_collision_check:
                     collision_mode = vrep.simx_opmode_streaming
                 else:
@@ -121,8 +100,36 @@ def run(config_file):
                     client_id, collision_handle, collision_mode)
                 first_collision_check = False
 
+                output = net.activate(individual.sensor_activation)
+                scaled_output = np.array([scale(xi, -2, 2) for xi in output])
 
-            # aggregate fitness function 
+                if DEBUG: individual.logger.info(f'Wheels {scaled_output}')
+
+                individual.set_motors(*list(scaled_output))
+
+                # Fitness function; each feature;
+                # V - wheel center
+                V = f_wheel_center(output[0], output[1])
+                if DEBUG: individual.logger.info(f'f_wheel_center {V}')
+
+                # pleasure - straight movements
+                pleasure = f_straight_movements(output[0], output[1])
+                if DEBUG: individual.logger.info(f'f_straight_movements {pleasure}')
+
+                # pain - closer to an obstacle more pain
+                pain = f_pain(individual.sensor_activation)
+                if DEBUG: individual.logger.info(f'f_pain {pain}')
+
+                #  fitness_t at time stamp
+                fitness_t = V * pleasure * pain
+                fitness_agg = np.append(fitness_agg, fitness_t)
+
+                with open(PATH + str(id) + "_fitness.txt", "a") as f:
+                    f.write(
+                        f"{str(id)},{output[0]},{output[1]},{scaled_output[0]},{scaled_output[1]},{V},{pleasure},{pain},{fitness_t} \n")
+
+
+            # aggregate fitness function - euclidean distance
             fitness_aff = [np.sqrt(abs(np.array(individual.position)[0] -
                             np.array(start_position)[0])**2 +
                             abs(np.array(individual.position)[1] -
@@ -130,9 +137,9 @@ def run(config_file):
 
             # behavarioral fitness function
             fitness_bff = [np.sum(fitness_agg)]
-            
+
             # tailored fitness function
-            fitness = fitness_bff[0] * fitness_aff[0]
+            fitness = fitness_bff[0] # * fitness_aff[0]
 
             print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
 

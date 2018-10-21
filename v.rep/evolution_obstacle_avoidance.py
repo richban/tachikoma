@@ -19,7 +19,7 @@ RUNTIME = 24
 
 # GENOME TYPE
 MINMAX = 5
-MIN = -1.0
+MIN = 0.0
 MAX = 1.0
 
 # EVOLUTION
@@ -124,7 +124,7 @@ def evolution_obstacle_avoidance():
             pleasure = (1 - (np.sqrt(np.absolute(individual.norm_wheel_speeds[0] - individual.norm_wheel_speeds[1]))))
             # pain - closer to an obstacle more pain
             try:
-                pain = np.amin(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
+                pain = 1 - np.amax(individual.sensor_activation[np.nonzero(individual.sensor_activation)])
             except ValueError:
                 pain = 1
             # fitness_t at time stamp
