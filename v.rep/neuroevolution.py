@@ -141,6 +141,12 @@ def run(config_file):
             # tailored fitness function
             fitness = fitness_bff[0] # * fitness_aff[0]
 
+            # Now send some data to V-REP in a non-blocking fashion:
+            vrep.simxAddStatusbarMessage(client_id, f"fitness: {fitness}", vrep.simx_opmode_oneshot)
+
+            # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
+            vrep.simxGetPingTime(client_id)
+
             print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
 
             if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
