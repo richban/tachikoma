@@ -8,16 +8,15 @@ from deap import base, creator, tools, algorithms
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 import networkx
-import argparse
 from robot import EvolvedRobot
 from eaplots import plot_single_run
-from helpers import sensors_offset, normalize_0_1, f_wheel_center, f_straight_movements, f_pain
+from helpers import f_wheel_center, f_straight_movements, f_pain
 
 
 # VREP
 PORT_NUM = 19997
 OP_MODE = vrep.simx_opmode_oneshot_wait
-RUNTIME = 24
+RUNTIME = 120
 
 # GENOME TYPE
 MINMAX = 5
@@ -25,8 +24,8 @@ MIN = 0.0
 MAX = 3.0
 
 # EVOLUTION
-POPULATION = 30
-N_GENERATIONS = 20
+POPULATION = 80
+N_GENERATIONS = 50
 # CXPB  is the probability with which two individuals
 # are crossed
 #
@@ -112,8 +111,7 @@ def evolution_obstacle_avoidance():
         now = datetime.now()
         id = uuid.uuid1()
 
-        if DEBUG: individual.logger.info(f'Chromosome {self.chromosome}')
-
+        if DEBUG: individual.logger.info(f'Chromosome {individual.chromosome}')
 
         while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
 
@@ -165,7 +163,6 @@ def evolution_obstacle_avoidance():
         fitness = fitness_bff[0] # * fitness_aff[0]
 
         print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
-
 
         if fitness > 10:
             individual.save_robot(PATH + str(id)+"_robot")
@@ -244,7 +241,7 @@ def evolution_obstacle_avoidance():
 
 def dump_data(V, pleasure, pain, fitness_t, individual: EvolvedRobot):
     with open('debugging.txt', "a") as f:
-        f.write(f"{individual} {fitness} \n")
+        f.write(f"{individual} {fitness_t} \n")
 
 
 evolution_obstacle_avoidance()
