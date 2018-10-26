@@ -86,7 +86,7 @@ class Robot:
     def move_backward(self, speed=2.0):
         self.set_motors(-speed, -speed)
 
-    def set_motors(self, left: float, right: float):
+    def set_motors(self, left, right):
         vrep.simxSetJointTargetVelocity(
             self.client_id,
             self.left_motor,
@@ -98,14 +98,14 @@ class Robot:
             right,
             vrep.simx_opmode_streaming)
 
-    def set_left_motor(self, left: float):
+    def set_left_motor(self, left):
         vrep.simxSetJointTargetVelocity(
             self.client_id,
             self.left_motor,
             left,
             vrep.simx_opmode_streaming)
 
-    def set_right_motor(self, right: float):
+    def set_right_motor(self, right):
         vrep.simxSetJointTargetVelocity(
             self.client_id,
             self.right_motor,
@@ -211,7 +211,7 @@ class EvolvedRobot(Robot):
 
 
         # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
-        self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 2.0) for xi in wheelspeed])
+        self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 3.0) for xi in wheelspeed])
         if DEBUG: self.logger.info(f'WheelSpeed {wheelspeed}')
 
         # normalize wheelspeeds in range [0.0, 1.0] - fitness function
