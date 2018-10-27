@@ -135,7 +135,7 @@ class Robot:
                 else:
                     self.sensor_activation = np.append(self.sensor_activation, 0)
 
-            self.logger.info(f'Sensors Activation {self.sensor_activation}')
+            self.logger.info('Sensors Activation {}'.format(self.sensor_activation))
 
 
     @property
@@ -212,11 +212,11 @@ class EvolvedRobot(Robot):
 
         # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
         self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 3.0) for xi in wheelspeed])
-        if DEBUG: self.logger.info(f'WheelSpeed {wheelspeed}')
+        if DEBUG: self.logger.info('WheelSpeed {}'.format(self.wheel_speeds))
 
         # normalize wheelspeeds in range [0.0, 1.0] - fitness function
         self.norm_wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX) for xi in wheelspeed])
-        if DEBUG: self.logger.info(f'Normalized WheelSpeed {self.norm_wheel_speeds}')
+        if DEBUG: self.logger.info('Normalized WheelSpeed {}'.format(self.norm_wheel_speeds))
 
         self.set_motors(*list(self.wheel_speeds))
         time.sleep(0.1)  # loop executes once every 0.2 seconds
@@ -231,7 +231,7 @@ class EvolvedRobot(Robot):
             else:
                 self.sensor_activation = np.append(self.sensor_activation, 0)
 
-        if DEBUG: self.logger.info(f'Sensors Activation {self.sensor_activation}')
+        if DEBUG: self.logger.info('Sensors Activation {}'.format(self.sensor_activation))
         time.sleep(0.1)
 
     @property
