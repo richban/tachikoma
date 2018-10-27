@@ -10,15 +10,10 @@ import visualize
 from robot import EvolvedRobot
 from helpers import f_wheel_center, f_straight_movements, f_pain, scale
 import math
+from argparse import ArgumentParser
 
 OP_MODE = vrep.simx_opmode_oneshot_wait
 PORT_NUM = 19997
-RUNTIME = 20
-N_GENERATIONS = 10
-WHEEL_SPEED_SCALE = 16
-DEBUG = False
-global client_id
-
 PATH = "./data/neat/" + datetime.now().strftime("%Y-%m-%d") + "/"
 
 
@@ -26,7 +21,7 @@ if not os.path.exists(PATH):
     os.makedirs(PATH)
 
 
-def run(config_file):
+def run(config_file, args):
     print("Evolutionary program started!")
     # Just in case, close all opened connections
     vrep.simxFinish(-1)
@@ -43,6 +38,10 @@ def run(config_file):
         print("Failed connecting to remote API server")
         print("Program ended")
         return
+
+    N_GENERATIONS = args.n_gen
+    RUNTIME = args.time
+    DEBUG = args.debug
 
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
@@ -82,13 +81,14 @@ def run(config_file):
             now = datetime.now()
             fitness_agg = np.array([])
             scaled_output = np.array([])
-            distance_acc = 0.0
             net = neat.nn.FeedForwardNetwork.create(genome, config)
+
             id = uuid.uuid1()
             
             if start_position is None:
                 start_position = individual.position
             
+            distance_acc = 0.0
             pp = np.array(start_position)
             p = np.array([])
 
@@ -172,6 +172,7 @@ def run(config_file):
 
     # Show output of the most fit genome against training data.
     print("\nOutput:")
+
     winner_net = neat.nn.FeedForwardNetwork.create(winner, config)
 
     node_names = {-1: "A", -2: "B", -3: "C", -4: "D", -5: "E",
@@ -180,15 +181,28 @@ def run(config_file):
                   -16: "P", 0: "LEFT", 1: "RIGHT", }
 
     visualize.draw_net(config, winner, True, node_names=node_names)
-    visualize.plot_stats(stats, ylog=False, view=True)
-    visualize.plot_species(stats, view=True)
 
+    visualize.plot_stats(stats, ylog=False, view=False, filename="feedforward-fitness.svg")
+    visualize.plot_species(stats, view=False, filename="feedforward-speciation.svg")
+
+    visualize.draw_net(config, winner, view=False, node_names=node_names,
+                           filename="winner-feedforward.gv")
+    visualize.draw_net(config, winner, view=False, node_names=node_names,
+                        filename="winner-feedforward-enabled.gv", show_disabled=False)
+    visualize.draw_net(config, winner, view=False, node_names=node_names,
+                       filename="winner-feedforward-enabled-pruned.gv", show_disabled=False, prune_unused=False)
     # p = neat.Checkpointer.restore_checkpoint("neat-checkpoint-4")
     # p.run(eval_genomes, 10)
 
 
 if __name__ == "__main__":
     # Determine path to configuration file.
+    parser = ArgumentParser(description="Help me throughout the evolution")
+    parser.add_argument('--n_gen', type=int, help="number of generations")
+    parser.add_argument('--time', type=int, help="running time of one epoch")
+    parser.add_argument('--debug', type=str, help="debug mode on/off")
+    args = parser.parse_args()
+    print(args)
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config.ini")
-    run(config_path)
+    run(config_path, args)
