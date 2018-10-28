@@ -11,36 +11,22 @@ import networkx
 from robot import EvolvedRobot
 from eaplots import plot_single_run
 from helpers import f_wheel_center, f_straight_movements, f_pain
-
+from argparse import ArgumentParser
+import math
 
 # VREP
 PORT_NUM = 19997
+DEBUG = False
 OP_MODE = vrep.simx_opmode_oneshot_wait
-RUNTIME = 120
-
-# GENOME TYPE
-MINMAX = 5
+PATH = './data/ea/' + datetime.now().strftime("%Y-%m-%d") + '/'
 MIN = 0.0
 MAX = 3.0
-
-# EVOLUTION
-POPULATION = 80
-N_GENERATIONS = 50
-# CXPB  is the probability with which two individuals
-# are crossed
-#
-# MUTPB is the probability for mutating an individual
-CXPB = 0.1
-MUTPB = 0.2
-
-PATH = './data/ea/' + datetime.now().strftime("%Y-%m-%d") + '/'
-DEBUG = False
 
 if not os.path.exists(PATH):
     os.makedirs(PATH)
 
 
-def evolution_obstacle_avoidance():
+def evolution_obstacle_avoidance(args):
     print('Evolutionary program started!')
     # Just in case, close all opened connections
     vrep.simxFinish(-1)
@@ -61,6 +47,15 @@ def evolution_obstacle_avoidance():
     print('Connected to remote API server')
 
     robot = EvolvedRobot([], client_id=client_id, id=None, op_mode=OP_MODE)
+
+    # Evolution
+    RUNTIME = args.time
+    POPULATION = args.pop
+    N_GENERATIONS = args.n_gen
+    # CXPB  is the probability with which two individuals are crossed
+    CXPB = args.cxpb # 0.1
+    # MUTPB is the probability for mutating an individual
+    MUTPB = args.mutpb # 0.2
 
     # Creating the appropriate type of the problem
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
@@ -111,34 +106,45 @@ def evolution_obstacle_avoidance():
         now = datetime.now()
         id = uuid.uuid1()
 
-        if DEBUG: individual.logger.info(f'Chromosome {individual.chromosome}')
+        if start_position is None:
+            start_position = individual.position
+
+        distance_acc = 0.0
+        pp = np.array(start_position)
+        p = np.array([])
+
+        if DEBUG: individual.logger.info('Chromosome {}'.format(individual.chromosome))
 
         while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
 
-            if start_position is None:
-                start_position = individual.position
-
             individual.loop()
+
+            # Traveled distance calculation
+            p = np.array(individual.position)
+            d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
+            distance_acc += d
+            pp = p
 
             # Fitness function; each feature;
             # V - wheel center
             V = f_wheel_center(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
-            if DEBUG: individual.logger.info(f'f_wheel_center {V}')
+            if DEBUG: individual.logger.info("f_wheel_center {}".format(V))
 
             # pleasure - straight movements
             pleasure = f_straight_movements(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
-            if DEBUG: individual.logger.info(f'f_straight_movements {pleasure}')
+            if DEBUG: individual.logger.info("f_straight_movements {}".format(pleasure))
 
             # pain - closer to an obstacle more pain
             pain = f_pain(individual.sensor_activation)
-            if DEBUG: individual.logger.info(f'f_pain {pain}')
+            if DEBUG: individual.logger.info("f_pain {}".format(pain))
 
             #  fitness_t at time stamp
             fitness_t = V * pleasure * pain
             fitness_agg = np.append(fitness_agg, fitness_t)
 
-            with open(PATH + str(id)+"_fitness.txt", "a") as f:
-                f.write(f"{str(id)},{individual.wheel_speeds[0]},{individual.wheel_speeds[1]},{individual.norm_wheel_speeds[0]},{individual.norm_wheel_speeds[1]},{V},{pleasure},{pain},{fitness_t} \n")
+            with open(PATH + str(id) + "_fitness.txt", "a") as f:
+                f.write("{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n".format(id, individual.wheel_speeds[0],
+                individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
 
             # collision detection
             if first_collision_check:
@@ -151,10 +157,8 @@ def evolution_obstacle_avoidance():
             first_collision_check = False
 
         # aggregate fitness function
-        fitness_aff = [np.sqrt(abs(np.array(individual.position)[0] -
-                        np.array(start_position)[0])**2 +
-                        abs(np.array(individual.position)[1] -
-                        np.array(start_position)[1])**2), ]
+        fitness_aff = [distance_acc]
+
 
         # behavarioral fitness function
         fitness_bff = [np.sum(fitness_agg)]
@@ -162,9 +166,15 @@ def evolution_obstacle_avoidance():
         # tailored fitness function
         fitness = fitness_bff[0] # * fitness_aff[0]
 
+        # Now send some data to V-REP in a non-blocking fashion:
+        vrep.simxAddStatusbarMessage(client_id, "fitness: {}".format(fitness), vrep.simx_opmode_oneshot)
+
+        # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
+        vrep.simxGetPingTime(client_id)
+
         print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
 
-        if fitness > 10:
+        if fitness > 30:
             individual.save_robot(PATH + str(id)+"_robot")
 
         if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
@@ -239,9 +249,17 @@ def evolution_obstacle_avoidance():
         return
 
 
-def dump_data(V, pleasure, pain, fitness_t, individual: EvolvedRobot):
+def dump_data(V, pleasure, pain, fitness_t, individual):
     with open('debugging.txt', "a") as f:
-        f.write(f"{individual} {fitness_t} \n")
+        f.write("{individual} {fitness_t} \n".format(individual, fitness_t))
 
+if __name__ == "__main__":
+    parser = ArgumentParser(description="Help me throughout the evolution")
+    parser.add_argument('--pop', type=int, help="population size")
+    parser.add_argument('--n_gen', type=int, help="number of generations")
+    parser.add_argument('--time', type=int, help="running time of one epoch")
+    parser.add_argument('--cxpb', type=float, help="the probability with which two individuals are crossed")
+    parser.add_argument('--mutpb', type=float, help="the probability for mutating an individual")
+    args = parser.parse_args()
 
-evolution_obstacle_avoidance()
+    evolution_obstacle_avoidance(args)

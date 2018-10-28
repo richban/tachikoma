@@ -41,8 +41,7 @@ def run(config_file, args):
 
     N_GENERATIONS = args.n_gen
     RUNTIME = args.time
-    DEBUG = args.debug
-
+    DEBUG = False
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -84,17 +83,17 @@ def run(config_file, args):
             net = neat.nn.FeedForwardNetwork.create(genome, config)
 
             id = uuid.uuid1()
-            
+
             if start_position is None:
                 start_position = individual.position
-            
+
             distance_acc = 0.0
             pp = np.array(start_position)
             p = np.array([])
 
             while not collision and datetime.now() - now < timedelta(seconds=RUNTIME):
                 individual.neuro_loop()
-                
+
                 # Traveled distance calculation
                 p = np.array(individual.position)
                 d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
@@ -120,7 +119,7 @@ def run(config_file, args):
                 # Fitness function; each feature;
                 # V - wheel center
                 V = f_wheel_center(output[0], output[1])
-                if DEBUG: individual.logger.info("f_wheel_center {}".format(f_wheel_center))
+                if DEBUG: individual.logger.info("f_wheel_center {}".format(V))
 
                 # pleasure - straight movements
                 pleasure = f_straight_movements(output[0], output[1])
@@ -200,9 +199,9 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Help me throughout the evolution")
     parser.add_argument('--n_gen', type=int, help="number of generations")
     parser.add_argument('--time', type=int, help="running time of one epoch")
-    parser.add_argument('--debug', type=str, help="debug mode on/off")
     args = parser.parse_args()
-    print(args)
+    
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, "config.ini")
+
     run(config_path, args)
