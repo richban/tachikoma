@@ -239,7 +239,7 @@ def evolution_obstacle_avoidance(args):
     with open(PATH+'ea_statistics.txt', 'w') as s:
         s.write(log.__str__())
 
-    # save the best population
+    # save the best genome
     with open(PATH+'best', 'wb') as fp:
         pickle.dump(hof, fp)
 
