@@ -13,12 +13,13 @@ from eaplots import plot_single_run
 from helpers import f_wheel_center, f_straight_movements, f_pain
 from argparse import ArgumentParser
 import math
+import pickle
 
 # VREP
 PORT_NUM = 19997
 DEBUG = False
 OP_MODE = vrep.simx_opmode_oneshot_wait
-PATH = './data/ea/' + datetime.now().strftime("%Y-%m-%d") + '/'
+PATH = './data/ea/' + datetime.now().strftime('%Y-%m-%d') + '/'
 MIN = 0.0
 MAX = 3.0
 
@@ -57,10 +58,13 @@ def evolution_obstacle_avoidance(args):
     # MUTPB is the probability for mutating an individual
     MUTPB = args.mutpb # 0.2
 
+    # save the config
+    dump_config(POPULATION, N_GENERATIONS, RUNTIME, CXPB, MUTPB)
+
     # Creating the appropriate type of the problem
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMax)
+    creator.create('FitnessMin', base.Fitness, weights=(-1.0,))
+    creator.create('FitnessMax', base.Fitness, weights=(1.0,))
+    creator.create('Individual', list, fitness=creator.FitnessMax)
 
     # Deap Initialization
     toolbox = base.Toolbox()
@@ -68,16 +72,16 @@ def evolution_obstacle_avoidance(args):
     history = tools.History()
 
     # Attribute generator random
-    toolbox.register("attr_float", random.uniform, MIN, MAX)
+    toolbox.register('attr_float', random.uniform, MIN, MAX)
     # Structure initializers; instantiate an individual or population
     toolbox.register(
-        "individual",
+        'individual',
         tools.initRepeat,
         creator.Individual,
         toolbox.attr_float,
         n=robot.chromosome_size)
-    toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-    toolbox.register("map", map)
+    toolbox.register('population', tools.initRepeat, list, toolbox.individual)
+    toolbox.register('map', map)
 
     def eval_robot(individual):
 
@@ -86,7 +90,7 @@ def evolution_obstacle_avoidance(args):
             print('Program ended\n')
             return
 
-        # print("Starting simulation")
+        # print('Starting simulation')
 
         individual = EvolvedRobot(
             individual,
@@ -99,7 +103,7 @@ def evolution_obstacle_avoidance(args):
 
         # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
-            client_id, "robot_collision", vrep.simx_opmode_oneshot_wait)
+            client_id, 'robot_collision', vrep.simx_opmode_oneshot_wait)
         collision = False
         first_collision_check = True
 
@@ -125,27 +129,6 @@ def evolution_obstacle_avoidance(args):
             distance_acc += d
             pp = p
 
-            # Fitness function; each feature;
-            # V - wheel center
-            V = f_wheel_center(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
-            if DEBUG: individual.logger.info("f_wheel_center {}".format(V))
-
-            # pleasure - straight movements
-            pleasure = f_straight_movements(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
-            if DEBUG: individual.logger.info("f_straight_movements {}".format(pleasure))
-
-            # pain - closer to an obstacle more pain
-            pain = f_pain(individual.sensor_activation)
-            if DEBUG: individual.logger.info("f_pain {}".format(pain))
-
-            #  fitness_t at time stamp
-            fitness_t = V * pleasure * pain
-            fitness_agg = np.append(fitness_agg, fitness_t)
-
-            with open(PATH + str(id) + "_fitness.txt", "a") as f:
-                f.write("{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n".format(id, individual.wheel_speeds[0],
-                individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
-
             # collision detection
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
@@ -156,6 +139,29 @@ def evolution_obstacle_avoidance(args):
                 client_id, collision_handle, collision_mode)
             first_collision_check = False
 
+            # Fitness function; each feature;
+            # V - wheel center
+            V = f_wheel_center(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
+            if DEBUG: individual.logger.info('f_wheel_center {}'.format(V))
+
+            # pleasure - straight movements
+            pleasure = f_straight_movements(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
+            if DEBUG: individual.logger.info('f_straight_movements {}'.format(pleasure))
+
+            # pain - closer to an obstacle more pain
+            pain = f_pain(individual.sensor_activation)
+            if DEBUG: individual.logger.info('f_pain {}'.format(pain))
+
+            #  fitness_t at time stamp
+            fitness_t = V * pleasure * pain
+            fitness_agg = np.append(fitness_agg, fitness_t)
+
+            # dump individuals data
+            # with open(PATH + str(id) + '_fitness.txt', 'a') as f:
+            #     f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, individual.wheel_speeds[0],
+            #     individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
+
+
         # aggregate fitness function
         fitness_aff = [distance_acc]
 
@@ -164,18 +170,19 @@ def evolution_obstacle_avoidance(args):
         fitness_bff = [np.sum(fitness_agg)]
 
         # tailored fitness function
-        fitness = fitness_bff[0] # * fitness_aff[0]
+        fitness = fitness_bff[0] * fitness_aff[0]
 
         # Now send some data to V-REP in a non-blocking fashion:
-        vrep.simxAddStatusbarMessage(client_id, "fitness: {}".format(fitness), vrep.simx_opmode_oneshot)
+        vrep.simxAddStatusbarMessage(client_id, 'fitness: {}'.format(fitness), vrep.simx_opmode_oneshot)
 
         # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
         vrep.simxGetPingTime(client_id)
 
-        print("%s with fitness: %f and distance %f" % (str(id), fitness, fitness_aff[0]))
+        print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
 
-        if fitness > 30:
-            individual.save_robot(PATH + str(id)+"_robot")
+        # save individual as object
+        # if fitness > 30:
+        #     individual.save_robot(PATH + str(id)+'_robot')
 
         if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
             print('Failed to stop the simulation\n')
@@ -188,21 +195,21 @@ def evolution_obstacle_avoidance(args):
 
     # Register genetic operators
     # register the goal / fitness function
-    toolbox.register("evaluate", eval_robot)
+    toolbox.register('evaluate', eval_robot)
     # register the crossover operator
-    toolbox.register("mate", tools.cxTwoPoint)
+    toolbox.register('mate', tools.cxTwoPoint)
     # register a mutation operator with a probability to
     # flip each attribute/gene
-    toolbox.register("mutate", tools.mutFlipBit, indpb=MUTPB)
+    toolbox.register('mutate', tools.mutFlipBit, indpb=MUTPB)
     # operator for selecting individuals for breeding the next
     # generation: each individual of the current generation
     # is replaced by the 'fittest' (best) of three individuals
     # drawn randomly from the current generation.
-    toolbox.register("select", tools.selTournament, tournsize=3)
+    toolbox.register('select', tools.selTournament, tournsize=3)
 
     # Decorate the variation operators
-    toolbox.decorate("mate", history.decorator)
-    toolbox.decorate("mutate", history.decorator)
+    toolbox.decorate('mate', history.decorator)
+    toolbox.decorate('mutate', history.decorator)
 
     # instantiate the population
     # create an initial population of N individuals
@@ -213,10 +220,10 @@ def evolution_obstacle_avoidance(args):
     hof = tools.HallOfFame(20)
     # maintain stats of the evolution
     stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", np.mean)
-    stats.register("std", np.std)
-    stats.register("min", np.min)
-    stats.register("max", np.max)
+    stats.register('avg', np.mean)
+    stats.register('std', np.std)
+    stats.register('min', np.min)
+    stats.register('max', np.max)
 
     # very basic evolutianry algorithm
     pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=N_GENERATIONS,
@@ -226,13 +233,21 @@ def evolution_obstacle_avoidance(args):
     graph = graph.reverse()     # Make the grah top-down
     colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
     networkx.draw(graph, node_color=colors)
-    plt.savefig('../images/genealogy_tree.pdf')
+    plt.savefig(PATH+'genealogy_tree.pdf')
+
+    # log Statistics
+    with open(PATH+'ea_statistics.txt', 'w') as s:
+        s.write(log.__str__())
+
+    # save the best population
+    with open(PATH+'best', 'wb') as fp:
+        pickle.dump(hof, fp)
 
     # Evolution records as a chronological list of dictionaries
-    gen = log.select("gen")
-    fit_mins = log.select("min")
-    fit_avgs = log.select("avg")
-    fit_maxs = log.select("max")
+    gen = log.select('gen')
+    fit_mins = log.select('min')
+    fit_avgs = log.select('avg')
+    fit_maxs = log.select('max')
 
     save_date = datetime.now().strftime('%m-%d-%H-%M')
 
@@ -242,24 +257,26 @@ def evolution_obstacle_avoidance(args):
         fit_avgs,
         fit_maxs,
         ratio=0.35,
-        save='../images/'+save_date+'-evolved-obstacle.pdf')
+        save=PATH+'evolved-obstacle.pdf')
 
     if (vrep.simxFinish(client_id) == -1):
         print('Evolutionary program failed to exit\n')
         return
 
 
-def dump_data(V, pleasure, pain, fitness_t, individual):
-    with open('debugging.txt', "a") as f:
-        f.write("{individual} {fitness_t} \n".format(individual, fitness_t))
+def dump_config(pop, n_gen, time, cxpb, mutpb):
+    with open(PATH+'ea_config.txt', 'a') as f:
+        f.write('Poluation size: {0}\nNumber of generations: {1}\n'
+            'Simulation Time: {2}\nCrossover: {3}\nMutation: {4}\n' \
+            .format(pop, n_gen, time, cxpb, mutpb))
 
-if __name__ == "__main__":
-    parser = ArgumentParser(description="Help me throughout the evolution")
-    parser.add_argument('--pop', type=int, help="population size")
-    parser.add_argument('--n_gen', type=int, help="number of generations")
-    parser.add_argument('--time', type=int, help="running time of one epoch")
-    parser.add_argument('--cxpb', type=float, help="the probability with which two individuals are crossed")
-    parser.add_argument('--mutpb', type=float, help="the probability for mutating an individual")
+if __name__ == '__main__':
+    parser = ArgumentParser(description='Help me throughout the evolution')
+    parser.add_argument('--pop', type=int, help='population size')
+    parser.add_argument('--n_gen', type=int, help='number of generations')
+    parser.add_argument('--time', type=int, help='running time of one epoch')
+    parser.add_argument('--cxpb', type=float, help='the probability with which two individuals are crossed')
+    parser.add_argument('--mutpb', type=float, help='the probability for mutating an individual')
     args = parser.parse_args()
 
     evolution_obstacle_avoidance(args)
