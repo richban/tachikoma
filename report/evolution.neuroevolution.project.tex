@@ -37,42 +37,41 @@
 \acmDOI{}
 \begin{document}
 \begin{abstract}
-The purpose of this project is to compare different evolution strategies to the evolution and optimization of Brainteberg vehicle using classical evolutionary algorithms and neuroevolution. Braitenberg vehicles are special class of agents that can autonomously move around based on its sensor inputs. Braintenberg vehicles are controlled by number of parameters, depending how the sensors and wheels are connected we can exhibit different behaviors. We show how basic evolutionary algorithms (EA’s) and neuroevolution can emulate a Braintenberg vehicle in a way that it avoids obstacles. Although the experiments will consists of a simple task of navigation and obstacle avoidance, our major goal of the project on autonomous agents is to emphasise the main differences  of both approaches. V-Rep simulator will be used to test and track the evolution, however we intend to test on a real physical agent.
+The purpose of this project is to compare different evolution strategies to the evolution and optimization of Braitenberg vehicle using classical evolutionary algorithms and neuroevolution. Braitenberg vehicles are special class of agents that can autonomously move around based on its sensor inputs. Braitenberg vehicles are controlled by number of parameters, depending how the sensors and wheels are connected we can exhibit different behaviors. We show how basic evolutionary algorithms (EA’s) and neuroevolution can emulate a Braitenberg vehicle in a way that it avoids obstacles. Although the experiments will consists of a simple task of navigation and obstacle avoidance, our major goal of the project on autonomous agents is to emphasize the main differences  of both approaches. V-Rep simulator will be used to test and track the evolution, however we intend to test on a real physical agent.
 	\end{abstract}
 \maketitle
 
 
 \section{Introduction}
 
-Autonumous agents are characterized by self-sufficiency and reliable self-adaption to the characteristics of the environment without external supervision or control \footnote{D. J. McFarland. Autonomy and self-sufficiency in robots. AI-Memo 92-03, Artificial Intelligence Laboratory, Vrije Universiteit Brussel, Belgium, 1992.}. The adaption process takes place while the agent operates in its own environment. Self-sufficent means that the agent is able to sense its own interanal status. An example is a vacuum cleaning robot (Xiaomi Mi Robot\footnote{\url{https://xiaomi-mi.com/appliances/xiaomi-mijia-roborock-robot-vacuum-cleaner-2-white/}}) that can maintain its internal energy level and when its batteries are on low it returns to docking station to get charged. All these features of autonumous agents cannot be pre-defined, but should rather emerge from the interaction between the robot and its own environment. Autonumous agent are quipped with sensors and actuators. An agent perceives its environment trought sensors like proximity, infrared sensors and it interacts with its environment by using actuators. 
+Autonomous agents are characterized as intelligent agents that pursue certain goal without external supervision or control. Take for example a self-driving car\footnote{\url{https://www.tesla.com}}, its goal is to drive from point A to point B, while ensuring the safety of its passengers, as well it has to be able to maintain its internal energy level and when its batteries are on low it drives to the nearest charging stations. In real world situation the self-driving har has to be able to adapt to different environments, driving on the highway or on the country side requires different behavioral capabilities. All these features of autonomous agents cannot be pre-defined, but should rather emerge from the interaction between the robot and its own environment. Autonomous agents are quipped with sensors and actuators. An agent perceives its environment trough sensors like proximity, infrared sensors and it interacts with its environment by using actuators. 
 
-Major steps have been already taken for building autonumous systems using classical AI approach. However, recently a new novel approach has emerged, termed \emph{behavior-based-robotics}. As contrased to classical \emph{Knowledge-Based Artificial Intelligence} which is more concered with a high level of definition of the environment and of the knowledge required by the system, behavior based robotics emphisize the importance of continuous interaction between the robot and its own environment for the dynamic development of the control system \footnote{Springer Handbook of Robotics}.
-
-Beside these solutions, some other researchers have fullfilled the requirements of learning and adaption by employing various sorts of neural networks to control a robot. A somehow different approach is taken by researchers that try to evolve the robot control system using evolutionary algorithms. Rather than design a solution, they describe the robot characteristics in form of an chromosome. \emph{Evolutionary algorithms} focus on global optimization problems inspired by biological evolution. EA are population based, meta heuristic search procedures that incorporate genetic operators. Algorithm maintais a population of candidate solutions which is subjected to natural selection and mutation. In each generation, a set of offspring is generated by applying bio operatos such as \emph{mutation, crossover, selection}. Each generation, the fitness of every individual in the population is evaluated. More fit individuals are stochastically selected from the current population, and each individual's \emph{genome} is modified (recombined or randomly mutated) to form a new generation. The algorithm terminates when either the maximum number of generations has been produced, or fitness level has been reached for the population.
-
-Within this approach, a number of researches have successfully employed and evolutionary procedure to develop a robot control system \footnote{\url{http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.6938}}. Altough the evolutionary procedure is well know, it is not a straightforward task to apply, as we will see later...
+Major steps have been already taken for building autonomous systems using classical AI approach. On one hand there is the approach termed \emph{behavior-based-robotics} from the 1980's\footnote{\url{https://en.wikipedia.org/wiki/Behavior-based_robotics}}. Behavior based robotics emphasize the importance of continuous interaction between the robot and its own environment for the dynamic development of the control system \footnote{Springer Handbook of Robotics}. As contrasted to classical \emph{Knowledge-Based Artificial Intelligence} which is more concerned with a high level of definition of the environment. For example, the agent first sense the environment, then usually a model is built, and the robot has to reason upon this model to decide which action to take. Clearly this approach is very slow and could not be executed in real world.
 
 
-In this paper we describe the evolution of Brainteberg like obstacle avoidance vehicle using classical evolutionary algorithm and neuroevolution. In all our experiments the evolutionary procedure is carried out in a robot simulator called V-Rep \footnote{\url{http://www.coppeliarobotics.com/}}.
+Beside these solutions, some other researchers have developed autonomous systems by employing various sorts of neural networks to control a robot. A  different approach is taken by researchers that try to evolve the robot control system using evolutionary algorithms. Rather than design a solution, they describe the robot characteristics in form of an chromosome. \emph{Evolutionary algorithms} \footnote{\url{https://en.wikipedia.org/wiki/Evolutionary_algorithm}} focus on global optimization problems inspired by biological evolution. EA are population based, meta heuristic search procedures that incorporate genetic operators. Algorithm maintains a population of candidate solutions which is subjected to natural selection and mutation. In each generation, a set of offspring is generated by applying bio operators such as \emph{mutation, crossover, selection}. Each generation, the fitness of every individual in the population is evaluated. More fit individuals are stochastically selected from the current population, and each individual's \emph{genome} is modified (recombined or randomly mutated) to form a new generation. The algorithm terminates when either the maximum number of generations has been produced, or fitness level has been reached for the population.
 
+Within this approach, a number of researches have successfully employed and evolutionary procedure to develop a robot control system \footnote{\url{http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.49.6938}}. Although the evolutionary procedure is well know, it is not a straightforward task to apply, as we will see later.
+
+In this paper we describe the evolution of Braitenberg like obstacle avoidance vehicle using classical evolutionary algorithm and neuroevolution. In all our experiments the evolutionary procedure is carried out in a robot simulator called V-Rep \footnote{\url{http://www.coppeliarobotics.com/}}.
 
 \section{The Robot}
 
 In the experiments reported in this paper, the simulator (robot) was controlled through external client. The remote API functions are interacting with V-REP (robot) via socket communication. A detailed description of V-REP and the remote API \footnote{\url{http://www.coppeliarobotics.com/helpFiles/en/remoteApiOverview.htm}} can be found online.
 
-Pionner P3DX was choosen for the purpose of the experiments. The robot is equipped with 16 proximity sensors and two motors. The motors can be controlled independently of each other by sending fucntion calls to the simulator. The speed values are in range [-48, 48]; inside the simulator, these values are normalized such that they are in the range [-1,1]. The proximity sensor readings are type of float and the values are in range [0, 1]. The sensors give input values for detectable objects distances between 0.05 mm and 1 m. A sensor value of 0.1 indicates that the robot is 0.1 m away from the object, and sensor value of 1 indicates that the robot does not receive any input from the proximity sensors.
+Pioneer P3DX was chosen for the purpose of the experiments. The robot is equipped with 16 proximity sensors and two motors. The motors can be controlled independently of each other by sending function calls to the simulator. The speed values are in range [0, 3]; inside the simulator, these values are normalized such that they are in the range [0,1]. The proximity sensor readings are type of float and the values are in range [0, 1]. The sensors give input values for detectable objects distances between (0.05,1). A sensor value of 0.1 indicates that the robot is very close to the object, and sensor value of 0 indicates that the robot does not receive any input from the proximity sensors.
 
 \begin{figure}[H]
-  \includegraphics[width=0.66\linewidth]{pioneer.PNG}
+  \includegraphics[width=0.66\linewidth]{img/pioneer.PNG}
   \caption{The Pioneer P3DX robot}
   \label{fig:pioneer-robot}
 \end{figure}
 
 \section{Braitenberg Vehicles}
 
-A Braitenberg vehicle is an agent that can autonomously move around based on its sensor inputs. The vehicle is equipped with primitive sensors that measure certain quality, and 2 motors which functions as actuators. Depending on how the sensors and motors are connected, the vehicle exhibits different behaviours. Thus the motion of the vehicle is directly controlled by the sensors. Yet the resulting bahaviour may appear complex or even intelligent \footnote{\url{https://en.wikipedia.org/wiki/Braitenberg_vehicle}}.
+A Braitenberg vehicle is an agent that can autonomously move around based on its sensor inputs. The vehicle is equipped with primitive sensors that measure certain quality, and 2 motors which functions as actuators. Depending on how the sensors and motors are connected, the vehicle exhibits different behaviors. Thus the motion of the vehicle is directly controlled by the sensors. Yet the resulting bahavior may appear complex or even intelligent \footnote{\url{https://en.wikipedia.org/wiki/Braitenberg_vehicle}}.
 
-Our control architecture was inspired by a Braitenberg type-3c vehicle. The sensor readings controls the motors via inhibitory and excitory connections. The key idea is that a sensor with high proximity activation accelerate the motor on the proximity sensor's side while slows down the motor on the opposite side. The presense of an obstacle leads to different motor speeds, which causes the robot to turn, spin, or even backing up. The activation of motor's is calculated by the following formula:
+Our control architecture was inspired by a Braitenberg type-3c vehicle. The sensor readings controls the motors via inhibitory and excitatory connections. The key idea is that a sensor with high proximity activation accelerate the motor on the proximity sensor's side while slows down the motor on the opposite side. The presence of an obstacle leads to different motor speeds, which causes the robot to turn, spin, or even backing up. The activation of motor's is calculated by the following formula:
 
 \[ M_{lr} = \sum_{i=1}^{16} P(i)w_{lr} \]
 
@@ -86,42 +85,56 @@ where \(P{i}\) is the activation value of the proximity sensor \emph{i} and \(w_
 \section{Experimental Setup}
 
 \begin{figure}[H]
-  \includegraphics[width=0.66\linewidth]{scene.PNG}
+  \includegraphics[width=0.66\linewidth]{img/scene.PNG}
   \caption{The environment. The robot indicated position is the starting poing of every simulation as well for the fitness evaluation.}
   \label{fig:arena-scene}
 \end{figure}
 
-The robot is operating in an environment in a sort of squared corridor whose size is approximately 2x2m large in the simulator. Figure 2 shows the arena in which the robot has to move. In all experiments, the robot was started from an initial positions which is indicated in the figure.
+The robot is operating in an environment in a sort of squared corridor whose size is approximately 2x2m large in the simulator. Figure\ref{fig:arena-scene} shows the arena in which the robot has to move. In all experiments, the robot was started from an initial positions which is indicated in the figure.
 
-As already discussed, our goal was to develop a robot that could learn how to cover as much much distance as possible while avoid obstacles on its way. In order to evolve Braitenberg like vehicles, we needed to incorporate features into our fitness function which solely relies on a set of variables that can be measeured within the interaction between the robot and the environment. Hence our fitness criterion consisits of two fitness classes: \emph{aggreagate fitness function} and \emph{behavioral fitness function}.
+As already discussed, our goal was to develop a robot that could learn how to cover as much much distance as possible while avoid obstacles on its way. In order to evolve Braitenberg like vehicles, we needed to incorporate features into our fitness function which solely relies on a set of variables that can be measured within the interaction between the robot and the environment. Hence our fitness criterion consists of two fitness classes: \emph{aggregate fitness function} and \emph{behavioral fitness function}.
 
 \emph{Aggregate fitness function} have the lowest degree of knowledge and evaluate only what is achieved. In our case it relies on traveled distance. The procedure of how the robot accomplishes the task is irrelevant. The aggregate fitness function is defined by the distance that the robot traveled during the evaluation:
 
-\[ aff = \sqrt{|x_{start} - x_{stop}|^2 + |y_{start} - y_{stop}|^2} \]
+\[ aff = \sum_{t=1}^{t_{max}} \sqrt{(x_{previous} - x_{current})^2 + (y_{previous} - y_{current})^2} \]
 
 On the other hand \emph{behavioral fitness function} measures how the task is solved, hence it requires priori knowledge about options how the task can be solved. This way BFF also predetermine potential solutions and possibly exclude counterintuitive options \footnote{\url{https://dl.acm.org/citation.cfm?id=2754676}}. The \emph{bff} is a function of three variables, as follows:
 
 
-\[ f_{t} = V_{t}(1-\Delta v)P_{t} \]
+\[ f_{t} = V_{t} (1-\Delta v) (1 - P_{t}) \]
 
 \[ bff = \sum_{t=1}^{t_{max}} f_{t} \]
 
 
-where \(V_{t} = \frac{V_{l} + V_{}r}{2} \) is a average speed of the both wheels at a particular timestamp \emph{t}, \(|v_{l} - v_{r}|\) is the algebraic difference between the speed values of the wheels and \(P{t}\) is the activation value of the proximity sensor with the highest activity. The \emph{behavioral fitness function} has 3 components. The first component is the average of the two wheel speeds. The faster the robot moves the better it accomplishes the task. Second, the penalty term between the two speeds is minimized by \((1-\sqrt{\Delta v})\). The last component is plesure \(P{t}\) and rewards to stay away from obstacles. If the robot is getting closer to the obstacle, than it is interpretted as a penalty.
+where \(V_{t} = \frac{V_{l} + V_{}r}{2} \) is a average speed of the both wheels at a particular timestamp \emph{t}, \(|v_{l} - v_{r}|\) is the algebraic difference between the speed values of the wheels and \((1 - P{t})\) is the activation value of the proximity sensor with the highest activity. The \emph{behavioral fitness function} has 3 components. The first component is the average of the two wheel speeds. The faster the robot moves the better it accomplishes the task. Second, the penalty term between the two speeds is minimized by \((1-\sqrt{\Delta v})\). The last component is pleasure \(P{t}\) and rewards to stay away from obstacles. If the robot is getting closer to the obstacle, then it is interpreted as a penalty.
 
-Following our fitness function strategy we defined \emph{tailored fitness function} which combines the elements of behavioral and aggreate fitness functions. Thus the fitness function is defined as dot product of \emph{bff} and \emph{aff}:
+Following our fitness function strategy we defined \emph{tailored fitness function} which combines the elements of behavioral and aggregate fitness functions. Thus the fitness function is defined as dot product of \emph{bff} and \emph{aff}:
 
 \[ fitness = aff * bff \]
 
 \section{Experiments}
 
+\subsection{Classical Evolutionary Algorithm}
+
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+
+\subsubsection{The Experiment}
+
+\subsubsection{Results}
+
+\subsection{Neuroevolution}
+
+Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+
+\subsubsection{The Experiment}
+
+\subsubsection{Results}
 
 \section{Discussion}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
-\section{Conclussion}
+\section{Summary}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
