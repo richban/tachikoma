@@ -178,7 +178,7 @@ def evolution_obstacle_avoidance(args):
         # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
         vrep.simxGetPingTime(client_id)
 
-        print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
+        # print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
 
         # save individual as object
         # if fitness > 30:
@@ -229,10 +229,11 @@ def evolution_obstacle_avoidance(args):
     pop, log = algorithms.eaSimple(pop, toolbox, cxpb=CXPB, mutpb=MUTPB, ngen=N_GENERATIONS,
                                    stats=stats, halloffame=hof, verbose=True)
 
-    graph = networkx.DiGraph(history.genealogy_tree)
-    graph = graph.reverse()     # Make the grah top-down
+    # plot the best individuals genealogy
+    gen_best = history.getGenealogy(hof[0])
+    graph = networkx.DiGraph(gen_best).reverse()
     colors = [toolbox.evaluate(history.genealogy_history[i])[0] for i in graph]
-    networkx.draw(graph, node_color=colors)
+    networkx.draw(graph, node_color=colors, node_size=100)
     plt.savefig(PATH+'genealogy_tree.pdf')
 
     # log Statistics
