@@ -114,23 +114,36 @@ Following our fitness function strategy we defined \emph{tailored fitness functi
 
 \section{Experiments}
 
+The goal of all experiments was to explicitly evolve agents that could navigate within a specific environment without hitting obstacles. The fitness function applied was specifically designed to enforce this type of behahavior.
+
 \subsection{Classical Evolutionary Algorithm}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
-
 \subsubsection{The Experiment}
+
+The aforementioned evolutionary algorithm employed in the experiments consisted in applying a simplest evolutionary algorithm from the python DEAP library\footnote{\url{https://deap.readthedocs.io/en/master/api/algo.html}} which is presented in Chapter 7 of \emph{Evolutionary Computataion I}\footnote{\url{Evolutionary Computation 1 Basic Algorithms and Operators
+https://digi.lib.ttu.ee/services/copycat-pdf.php?ID=248}}. The individual genes were coded as floating point numbers in range between 0 and 3 on the chromosome. The chromosomes were mapped to phonotypes as wheel speed contributors. Each chromosome in the population had the same constant length (size of 32) corresponding to number of sensors and genes associated with that sensor. Each sensor connection was associated with four genes, representing active or in-active states and the left and righ wheels of the agent. The wheel speed units are summed from each sensors input contribution depending its current state (active or in-active) and are used to directly set the velocity of the wheels.
+
+\begin{figure}[H]
+  \includegraphics[width=0.66\linewidth]{img/encoding.JPEG}
+  \caption{Genotype phenotype mapping.}
+  \label{fig:encoding}
+\end{figure}
+
+Each individual in the population was encoded as summarized in figure \ref{fig:encoding}. The robot started from same position every simulation and could move freely for a limited of time, each simulation lasted 40 seconds. All individuals in the population had been bound to 3 genetic operators, \emph{selection, mutation, crossover}. Selection procedure is applied to entirely replace the parental population. \emph{Tournament} strategy was applied by selecting the 3 best individuals for breeding. All offspring population, were a random combination of pair of parents and two-point crossver was performered with a given probability. Each individual after the offspring was created were mutated with a given probability.
 
 \subsubsection{Results}
 
 \subsection{Neuroevolution}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+NeuroEvolution of Augmenting Topologies \footnote{\url{http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf}} is a genetic algorithm for evolving both weights and topology of artificial neural networks. NEAT starts with minimal ANN structure and grows incrementally, which ensures low dimensionality of the connection weights and therefore minimizes the search space. The main traits of NEAT are \emph{genetic encoding, competing convention, speciation}.
 
 \subsubsection{The Experiment}
 
+
+
 \subsubsection{Results}
 
-\section{Discussion}
+\section{Conclusion}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
