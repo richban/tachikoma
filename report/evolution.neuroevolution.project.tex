@@ -120,8 +120,8 @@ The goal of all experiments was to explicitly evolve agents that could navigate 
 
 \subsubsection{The Experiment}
 
-The aforementioned evolutionary algorithm employed in the experiments consisted in applying a simplest evolutionary algorithm from the python DEAP library\footnote{\url{https://deap.readthedocs.io/en/master/api/algo.html}} which is presented in Chapter 7 of \emph{Evolutionary Computataion I}\footnote{\url{Evolutionary Computation 1 Basic Algorithms and Operators
-https://digi.lib.ttu.ee/services/copycat-pdf.php?ID=248}}. The individual genes were coded as floating point numbers in range between 0 and 3 on the chromosome. The chromosomes were mapped to phonotypes as wheel speed contributors. Each chromosome in the population had the same constant length (size of 32) corresponding to number of sensors and genes associated with that sensor. Each sensor connection was associated with four genes, representing active or in-active states and the left and righ wheels of the agent. The wheel speed units are summed from each sensors input contribution depending its current state (active or in-active) and are used to directly set the velocity of the wheels.
+The aforementioned evolutionary algorithm employed in the experiments consisted in applying a simplest evolutionary algorithm from the python DEAP library\footnote{\url{https://deap.readthedocs.io/en/master/api/algo.html}} which is presented in Chapter 7 of \emph{Evolutionary Computation I}\footnote{\url{Evolutionary Computation 1 Basic Algorithms and Operators
+https://digi.lib.ttu.ee/services/copycat-pdf.php?ID=248}}. The individual genes were coded as floating point numbers in range between 0 and 3 on the chromosome. The chromosomes were mapped to phenotypes as wheel speed contributors. Each chromosome in the population had the same constant length (size of 32) corresponding to number of sensors and genes associated with that sensor. Each sensor connection was associated with four genes, representing active or in-active states and the left and right wheels of the agent. The wheel speed units are summed from each sensors input contribution depending its current state (active or in-active) and are used to directly set the velocity of the wheels.
 
 \begin{figure}[H]
   \includegraphics[width=0.66\linewidth]{img/encoding.JPEG}
@@ -129,19 +129,29 @@ https://digi.lib.ttu.ee/services/copycat-pdf.php?ID=248}}. The individual genes 
   \label{fig:encoding}
 \end{figure}
 
-Each individual in the population was encoded as summarized in figure \ref{fig:encoding}. The robot started from same position every simulation and could move freely for a limited of time, each simulation lasted 40 seconds. All individuals in the population had been bound to 3 genetic operators, \emph{selection, mutation, crossover}. Selection procedure is applied to entirely replace the parental population. \emph{Tournament} strategy was applied by selecting the 3 best individuals for breeding. All offspring population, were a random combination of pair of parents and two-point crossver was performered with a given probability. Each individual after the offspring was created were mutated with a given probability.
+Each individual in the population was encoded as summarized in figure \ref{fig:encoding}. The robot started from same position every simulation and could move freely for a limited of time, each simulation lasted 40 seconds. All individuals in the population had been bound to 3 genetic operators, \emph{selection, mutation, crossover}. Selection procedure is applied to entirely replace the parental population. \emph{Tournament} strategy was applied by selecting the 3 best individuals for breeding. All offspring population, were a random combination of pair of parents and two-point crossover was performed with a given probability. Each individual after the offspring was created were mutated with a given probability.
 
 \subsubsection{Results}
+
+Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
 \subsection{Neuroevolution}
 
-NeuroEvolution of Augmenting Topologies \footnote{\url{http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf}} is a genetic algorithm for evolving both weights and topology of artificial neural networks. NEAT starts with minimal ANN structure and grows incrementally, which ensures low dimensionality of the connection weights and therefore minimizes the search space. The main traits of NEAT are \emph{genetic encoding, competing convention, speciation}.
+NeuroEvolution of Augmenting Topologies \footnote{\url{http://nn.cs.utexas.edu/downloads/papers/stanley.ec02.pdf}} is a genetic algorithm for evolving both weights and topology of artificial neural networks. NEAT starts with minimal ANN structure and grows incrementally, which ensures low dimensionality of the connection weights and therefore minimizes the search space.
 
 \subsubsection{The Experiment}
 
+The following experiments were similar to the previous one. However in this case the genome is represented as a neural network. The genome contains a list of \emph{connection genes} and list of \emph{nodes genes} which appears in the phenotype. Node genes represents inputs, hidden nodes, and outputs that can be connected. Whether a in-node and out-node is connected is expressed in the \emph{connection gene}. The initial neural network architecture consisted from 16 input nodes (each represented the proximity sensors placed around the robot), fully connected to the two output nodes (directly connected to motor wheels) with \emph{sigmoid} activation function. The algorithm starts with fixed topology and by applying biological operators over generations it grows. 
 
+\begin{figure}[H]
+  \includegraphics[width=0.66\linewidth]{img/neat_encoding.JPG}
+  \caption{Genotype phenotype mapping in NEAT.}
+  \label{fig:encoding}
+\end{figure}
 
 \subsubsection{Results}
+
+Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
 \section{Conclusion}
 
@@ -150,11 +160,6 @@ Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et
 \section{Summary}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
-
-\renewcommand{\abstractname}{Acknowledgements}
-\begin{abstract}
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
-\end{abstract}
 
 
 \end{document}
