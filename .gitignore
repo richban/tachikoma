@@ -6,9 +6,10 @@ neat-checkpoint-*
 *.log
 *.out
 *.aux
-*.jpg
+*/**/*.jpeg
+*/**/*.jpg
 *.pdf
-*.png
+*/**/*.png
 thesis.prep.report*
 */debugging.txt
 *.bak
