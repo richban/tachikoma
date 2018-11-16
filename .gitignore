@@ -16,4 +16,3 @@ thesis.prep.report*
 .ipynb_checkpoints
 *.py[co]
 __pycache__
-/data
