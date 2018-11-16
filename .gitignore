@@ -17,4 +17,3 @@ thesis.prep.report*
 *.py[co]
 __pycache__
 /data
-config.ini
