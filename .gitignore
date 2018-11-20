@@ -1,14 +1,13 @@
 .DS_Store
 *.pyc
 neat-checkpoint-*
-*.svg
 *.gv
 *.log
 *.out
 *.aux
+/report/*.pdf
 */**/*.jpeg
 */**/*.jpg
-*.pdf
 */**/*.png
 thesis.prep.report*
 */debugging.txt
