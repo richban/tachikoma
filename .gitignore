@@ -5,6 +5,7 @@ neat-checkpoint-*
 *.log
 *.out
 *.aux
+config.ini
 /report/*.pdf
 */**/*.jpeg
 */**/*.jpg
