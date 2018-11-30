@@ -7,6 +7,7 @@ import numpy as np
 import pickle
 import logging
 from helpers import sensors_offset, normalize
+import uuid
 
 PI = math.pi
 NUM_SENSORS = 16
@@ -189,6 +190,7 @@ class EvolvedRobot(Robot):
     def __init__(self, chromosome, client_id, id, op_mode):
         super().__init__(client_id, id, op_mode)
         self.chromosome = chromosome
+        self.unique_id = uuid.uuid1()
 
     def __str__(self):
         return "Chromosome: %s\n WheelSpeed: %s\n Normalized Speed: %s\n Sensor Activation: %s\n Max Sensor Activation: %s\n" % (
