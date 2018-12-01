@@ -1,0 +1,5 @@
+Poluation size: 80
+Number of generations: 40
+Simulation Time: 40
+Crossover: 0.4
+Mutation: 0.3
