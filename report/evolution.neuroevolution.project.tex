@@ -109,7 +109,7 @@ As already discussed, our goal was to develop a robot that could learn how to co
 
 \[ aff = \sum_{t=1}^{t_{max}} \sqrt{(x_{previous} - x_{current})^2 + (y_{previous} - y_{current})^2} \]
 
-On the other hand \emph{behavioral fitness function} measures how the task is solved, hence it requires priori knowledge about options how the task can be solved. This way BFF also predetermine potential solutions and possibly exclude counterintuitive options \footnote{\url{https://dl.acm.org/citation.cfm?id=2754676}}. The \emph{bff} is a function of three variables, as follows:
+On the other hand \emph{behavioral fitness function} measures how the task is solved, hence it requires priori knowledge about options how the task can be solved. This way BFF also predetermine potential solutions and possibly exclude counterintuitive options \cite{divband2015effect}. The \emph{bff} is a function of three variables, as follows:
 
 
 \[ f_{t} = V_{t} (1-\Delta v) (1 - P_{t}) \]
@@ -143,7 +143,22 @@ Each individual in the population was encoded as summarized in figure \ref{fig:e
 
 \subsubsection{Results}
 
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
+he first experimental configuration can be seen in table \ref{fig:experiment_1}. During the the first generations, the robot keeps colliding mostly with objects in front of him. After few generations, the robot start to make left turns, but still got stuck. However, after a short time the robot learned how to avoid the left closest obstacles and caused the robot to turn into small circles. During the next generations, this circling pattern is preserved, but the radius kept larger, it improved its objective avoidance behavior. Also a surprising  subjective observation was that the robot moved much slower than in the previous generations. This issue brought uncertainty, it was hard to define whether the evolution got stuck in a local optimal solution, which could be constantly repeated or rather the resulting behavior can be interpreted as a wall following, that emerged from the evolution process even thought its not part of the fitness function. To tackle this issue we tweaked some of the parameters of the evolutionary process.
+
+\begin{table}[H]
+\begin{tabular}{ll}
+\hline
+\textbf{}                      & \textbf{} \\ \hline
+\textbf{Population Size}       & 80        \\
+\textbf{Number of Generations} & 40        \\
+\textbf{Simulation time}       & 40 sec    \\
+\textbf{Crossover}             & 0.4       \\
+\textbf{Mutation}              & 0.3       \\
+\textbf{Tournament Selection}  & 3        
+\end{tabular}
+\caption{Experiment 1}
+\label{fig:experiment_1}
+\end{table}
 
 \subsection{Neuroevolution}
 
