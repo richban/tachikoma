@@ -124,7 +124,7 @@ def evolution_obstacle_avoidance(args):
 
         if DEBUG: individual.logger.info('Chromosome {}'.format(individual.chromosome))
 
-        while datetime.now() - now < timedelta(seconds=RUNTIME):
+        while (datetime.now() - now < timedelta(seconds=RUNTIME)) and not all(c == True for c in collisions):
 
             for i, ind in enumerate(individuals):
                 ind.loop()
@@ -141,8 +141,6 @@ def evolution_obstacle_avoidance(args):
                     collisionDetected, collision = vrep.simxReadCollision(client_id, collision_handlers[i], collision_mode[i])
                     collisions[i] = collision
                     first_collision_check[i] = False
-                else:
-                    print(ind.id)
 
             for i, ind in enumerate(individuals):
                 if not collisions[i]:
@@ -167,7 +165,7 @@ def evolution_obstacle_avoidance(args):
 
 
         fitness = [sum(f) for f in fitness_aff]
-        
+
         print('%s with fitness: %s ' % (str(id), str(fitness)))
 
         if (vrep.simxStopSimulation(client_id, OP_MODE) == -1):
