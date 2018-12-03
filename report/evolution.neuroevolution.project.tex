@@ -143,7 +143,7 @@ Each individual in the population was encoded as summarized in figure \ref{fig:e
 
 \subsubsection{Results}
 
-he first experimental configuration can be seen in table \ref{fig:experiment_1}. During the the first generations, the robot keeps colliding mostly with objects in front of him. After few generations, the robot start to make left turns, but still got stuck. However, after a short time the robot learned how to avoid the left closest obstacles and caused the robot to turn into small circles. During the next generations, this circling pattern is preserved, but the radius kept larger, it improved its objective avoidance behavior. Also a surprising  subjective observation was that the robot moved much slower than in the previous generations. This issue brought uncertainty, it was hard to define whether the evolution got stuck in a local optimal solution, which could be constantly repeated or rather the resulting behavior can be interpreted as a wall following, that emerged from the evolution process even thought its not part of the fitness function. To tackle this issue we tweaked some of the parameters of the evolutionary process.
+The first experimental configuration can be seen in table \ref{fig:experiment_1}. During the the first generations, the robot keeps colliding mostly with objects in front of him. After few generations, the robot start to make left turns, but still got stuck. However, after a short time the robot learned how to avoid the left closest obstacles and caused the robot to turn into small circles. During the next generations, this circling pattern is preserved, but the radius kept larger, it improved its objective avoidance behavior. Also a surprising  subjective observation was that the robot moved much slower than in the previous generations. This issue brought uncertainty, it was hard to define whether the evolution got stuck in a local optimal solution, which could be constantly repeated or rather the resulting behavior can be interpreted as a wall following, that emerged from the evolution process even thought its not part of the fitness function. To tackle this issue we tweaked some of the parameters of the evolutionary process.
 
 \begin{table}[H]
 \begin{tabular}{ll}
@@ -159,6 +159,30 @@ he first experimental configuration can be seen in table \ref{fig:experiment_1}.
 \caption{Experiment 1}
 \label{fig:experiment_1}
 \end{table}
+
+
+The second set controllers exhibit quite different behaviors. From the very beginning, the first robots keep heading straight and hitting the outer walls of the environment. In the first 3 generations to 12 generations, the robots keep improving their obstacle avoidance behavior and the fitness values almost doubled around 12th generation. Afterwards, the robots keep improving slightly, most of the agents in the the population already developed obstacle avoidance behavior. Figure \ref{fig:ea_results} the results of the evolutionary process. It shows the fitness of the population's fittest agents and the average of the whole population, likewise the worst performing agents. The parameters of the evolutionary process can bee seen in table \ref{table:experiment_2}.
+
+\begin{table}[H]
+\begin{tabular}{ll}
+\hline
+\textbf{}                      & \textbf{} \\ \hline
+\textbf{Population Size}       & 80        \\
+\textbf{Number of Generations} & 40        \\
+\textbf{Simulation time}       & 40 sec    \\
+\textbf{Crossover}             & 0.2       \\
+\textbf{Mutation}              & 0.1       \\
+\textbf{Tournament Selection}  & 3        
+\end{tabular}
+\caption{Parameters of the best evolutionary run.}
+\label{table:experiment_2}
+\end{table}
+
+\begin{figure}[H]
+  \includegraphics[width=0.86\linewidth]{img/ea_plot.PNG}
+  \caption{Evolutionary run of the best controllers.}
+  \label{fig:ea_results}
+\end{figure}
 
 \subsection{Neuroevolution}
 
@@ -179,10 +203,6 @@ The following experiments were similar to the previous one. However in this case
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
 \section{Conclusion}
-
-Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
-
-\section{Summary}
 
 Donec euismod iaculis pretium. Donec non massa elit. Phasellus sagittis magna et maximus dictum. Duis quis ullamcorper orci. Mauris interdum, elit eu tincidunt tempor, lectus mi venenatis purus, quis posuere tellus ex in magna. Phasellus tincidunt nibh eu tortor semper, et varius justo vulputate. Nullam dictum congue lacinia. Maecenas sagittis nulla quis leo fringilla viverra. Proin eget egestas nisl. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum a interdum tellus, a hendrerit ligula. Duis ut risus ut lacus maximus euismod. Integer quis justo sit amet sapien accumsan rutrum nec nec dolor. Aliquam laoreet scelerisque ante, quis hendrerit ipsum viverra tempor.
 
