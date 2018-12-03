@@ -241,7 +241,7 @@ def evolution_obstacle_avoidance(args):
         s.write(log.__str__())
 
     # save the best genome
-    with open(PATH+'best', 'wb') as fp:
+    with open(PATH+'best.pkl', 'wb') as fp:
         pickle.dump(hof, fp)
 
     # Evolution records as a chronological list of dictionaries
@@ -266,7 +266,7 @@ def evolution_obstacle_avoidance(args):
 
 
 def dump_config(pop, n_gen, time, cxpb, mutpb):
-    with open(PATH+'ea_config.txt', 'a') as f:
+    with open(PATH+'ea_config.txt', 'w') as f:
         f.write('Poluation size: {0}\nNumber of generations: {1}\n'
             'Simulation Time: {2}\nCrossover: {3}\nMutation: {4}\n' \
             .format(pop, n_gen, time, cxpb, mutpb))
