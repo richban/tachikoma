@@ -198,6 +198,7 @@ class EvolvedRobot(Robot):
 
     def loop(self):
         wheelspeed = np.array([0.0, 0.0])
+        self.sensor_activation = np.array([])
 
         for i, sensor in enumerate(self.prox_sensors):
             if self.get_sensor_state(sensor):
@@ -210,7 +211,6 @@ class EvolvedRobot(Robot):
                 wheelspeed += np.float32(
                     np.array(self.chromosome[i * 4 + 2:i * 4 + 4]))
                 self.sensor_activation = np.append(self.sensor_activation, 0)
-
 
         # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
         self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 5.0) for xi in wheelspeed])

@@ -106,7 +106,8 @@ def evolution_obstacle_avoidance(args):
             client_id, 'robot_collision', vrep.simx_opmode_oneshot_wait)
         collision = False
         first_collision_check = True
-
+        collision_mode = vrep.simx_opmode_buffer
+        
         now = datetime.now()
         id = uuid.uuid1()
 
@@ -132,13 +133,10 @@ def evolution_obstacle_avoidance(args):
             # collision detection
             if first_collision_check:
                 collision_mode = vrep.simx_opmode_streaming
-            else:
-                collision_mode = vrep.simx_opmode_buffer
-
-            collisionDetected, collision = vrep.simxReadCollision(
-                client_id, collision_handle, collision_mode)
-            first_collision_check = False
-
+                first_collision_check = False
+            
+            collisionDetected, collision = vrep.simxReadCollision(client_id, collision_handle, collision_mode)
+        
             # Fitness function; each feature;
             # V - wheel center
             V = f_wheel_center(individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1])
