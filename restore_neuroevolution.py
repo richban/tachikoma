@@ -45,9 +45,22 @@ def run(config_file, args):
                          config_file)
 
     restored_population = neat.Checkpointer.restore_checkpoint(args.checkpoint)
-    restored_population.run(eval_genomes, settings.N_GENERATIONS)
 
+    # this will keep running the evolution from the previous checkpoint
+    # restored_population.run(eval_genomes, settings.N_GENERATIONS)
 
+    pop = restored_population.population
+    species = restored_population.species
+    gen = restored_population.generation
+
+    p = neat.population.Population(config, (pop, species, 0))
+
+    # Add a stdout reporter to show progress in the terminal.
+    stats = neat.StatisticsReporter()
+    p.add_reporter(neat.StdOutReporter(True))
+    p.add_reporter(stats)
+    # Run for up to N_GENERATIONS generations.
+    winner = p.run(eval_genomes, settings.N_GENERATIONS)
 
 if __name__ == '__main__':
     # Determine path to configuration file.

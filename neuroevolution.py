@@ -22,11 +22,7 @@ if not os.path.exists(settings.PATH_NE):
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
-
-        # global CLIENT_ID
-        # global RUNTIME
-        # global DEBUG
-
+                
         if (vrep.simxStartSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
             print('Failed to start the simulation\n')
             print('Program ended\n')
@@ -69,8 +65,10 @@ def eval_genomes(genomes, config):
             pp = p
 
             if first_collision_check:
+                # Streaming operation request (subscription)
                 collision_mode = vrep.simx_opmode_streaming
             else:
+                # Fetch the newest joint value
                 collision_mode = vrep.simx_opmode_buffer
 
             collisionDetected, collision = vrep.simxReadCollision(
@@ -78,7 +76,8 @@ def eval_genomes(genomes, config):
             first_collision_check = False
 
             output = net.activate(individual.sensor_activation)
-            scaled_output = np.array([scale(xi, 0, 2) for xi in output])
+            # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
+            scaled_output = np.array([scale(xi, 0.0, 2.0) for xi in output])
 
             if settings.DEBUG: individual.logger.info('Wheels {}'.format(scaled_output))
 
@@ -102,8 +101,9 @@ def eval_genomes(genomes, config):
             fitness_agg = np.append(fitness_agg, fitness_t)
 
             # dump individuals data
-            # with open(PATH + str(id) + '_fitness.txt', 'a') as f:
-            #     f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, output[0], output[1], scaled_output[0], scaled_output[1], V, pleasure, pain, fitness_t))
+            if settings.DEBUG:
+                with open(settings.PATH_NE + str(id) + '_fitness.txt', 'a') as f:
+                    f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, output[0], output[1], scaled_output[0], scaled_output[1], V, pleasure, pain, fitness_t))
 
 
         # errorCode, distance = vrep.simxGetFloatSignal(CLIENT_ID, 'distance', vrep.simx_opmode_blocking)
@@ -168,18 +168,18 @@ def run(config_file, args):
     stats = neat.StatisticsReporter()
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(5))
+    p.add_reporter(neat.Checkpointer(1))
 
     # Run for up to N_GENERATIONS generations.
     winner = p.run(eval_genomes, settings.N_GENERATIONS)
 
     # Write run statistics to file.
-    stats.save_genome_fitness(filename=PATH+'fitnesss_history.csv')
-    stats.save_species_count(filename=PATH+'speciation.csv')
-    stats.save_species_fitness(filename=PATH+'species_fitness.csv')
+    stats.save_genome_fitness(filename=settings.PATH_NE+'fitnesss_history.csv')
+    stats.save_species_count(filename=settings.PATH_NE+'speciation.csv')
+    stats.save_species_fitness(filename=settings.PATH_NE+'species_fitness.csv')
 
     # log the winner network
-    with open(settings.PATH_EA + 'winner_network.txt', 'w') as s:
+    with open(settings.PATH_NE + 'winner_network.txt', 'w') as s:
         s.write('\nBest genome:\n{!s}'.format(winner))
         s.write('\nBest genomes:\n{!s}'.format(print(stats.best_genomes(5))))
 
@@ -191,17 +191,17 @@ def run(config_file, args):
                   -11: 'K', -12: 'L', -13: 'M', -14: 'N', -15: 'O',
                   -16: 'P', 0: 'LEFT', 1: 'RIGHT', }
 
-    visualize.draw_net(config, winner, True, node_names=node_names, filename=settings.PATH_EA+'network')
+    visualize.draw_net(config, winner, True, node_names=node_names, filename=settings.PATH_NE+'network')
 
-    visualize.plot_stats(stats, ylog=False, view=False, filename=settings.PATH_EA+'feedforward-fitness.svg')
-    visualize.plot_species(stats, view=False, filename=settings.PATH_EA+'feedforward-speciation.svg')
+    visualize.plot_stats(stats, ylog=False, view=False, filename=settings.PATH_NE+'feedforward-fitness.svg')
+    visualize.plot_species(stats, view=False, filename=settings.PATH_NE+'feedforward-speciation.svg')
 
     visualize.draw_net(config, winner, view=False, node_names=node_names,
-                           filename=settings.PATH_EA+'winner-feedforward.gv')
+                           filename=settings.PATH_NE+'winner-feedforward.gv')
     visualize.draw_net(config, winner, view=False, node_names=node_names,
-                        filename=settings.PATH_EA+'winner-feedforward-enabled.gv', show_disabled=False)
+                        filename=settings.PATH_NE+'winner-feedforward-enabled.gv', show_disabled=False)
     visualize.draw_net(config, winner, view=False, node_names=node_names,
-                       filename=settings.PATH_EA+'winner-feedforward-enabled-pruned.gv', show_disabled=False, prune_unused=False)
+                       filename=settings.PATH_NE+'winner-feedforward-enabled-pruned.gv', show_disabled=False, prune_unused=False)
 
 
 if __name__ == '__main__':

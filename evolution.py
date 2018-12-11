@@ -94,9 +94,10 @@ def eval_robot(individual):
         fitness_agg = np.append(fitness_agg, fitness_t)
 
         # dump individuals data
-        # with open(PATH + str(id) + '_fitness.txt', 'a') as f:
-        #     f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, individual.wheel_speeds[0],
-        #     individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
+        if settings.DEBUG:
+            with open(PATH + str(id) + '_fitness.txt', 'a') as f:
+                f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, individual.wheel_speeds[0],
+                individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
 
 
     # aggregate fitness function
@@ -118,8 +119,9 @@ def eval_robot(individual):
     # print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
 
     # save individual as object
-    # if fitness > 30:
-    #     individual.save_robot(PATH + str(id) + '_robot')
+    if settings.DEBUG:
+        if fitness > 30:
+            individual.save_robot(settings.PATH_EA + str(id) + '_robot')
 
     if (vrep.simxStopSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
         print('Failed to stop the simulation\n')

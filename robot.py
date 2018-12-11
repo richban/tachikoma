@@ -213,11 +213,11 @@ class EvolvedRobot(Robot):
                 self.sensor_activation = np.append(self.sensor_activation, 0)
 
         # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
-        self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 5.0) for xi in wheelspeed])
+        self.wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 2.0) for xi in wheelspeed])
         if DEBUG: self.logger.info('WheelSpeed {}'.format(self.wheel_speeds))
 
         # normalize wheelspeeds in range [0.0, 1.0] - fitness function
-        self.norm_wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX) for xi in wheelspeed])
+        self.norm_wheel_speeds = np.array([normalize(xi, X_MIN, X_MAX, 0.0, 0.1) for xi in wheelspeed])
         if DEBUG: self.logger.info('Normalized WheelSpeed {}'.format(self.norm_wheel_speeds))
 
         self.set_motors(*list(self.wheel_speeds))
