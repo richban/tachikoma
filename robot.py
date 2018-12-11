@@ -92,7 +92,7 @@ class Robot:
             self.client_id,
             self.left_motor,
             left,
-            vrep.simx_opmode_streaming)
+            vrep.simx_opmode_oneshot)
         vrep.simxSetJointTargetVelocity(
             self.client_id,
             self.right_motor,
@@ -104,18 +104,18 @@ class Robot:
             self.client_id,
             self.left_motor,
             left,
-            vrep.simx_opmode_streaming)
+            vrep.simx_opmode_oneshot)
 
     def set_right_motor(self, right):
         vrep.simxSetJointTargetVelocity(
             self.client_id,
             self.right_motor,
             right,
-            vrep.simx_opmode_streaming)
+            vrep.simx_opmode_oneshot)
 
     def get_sensor_state(self, sensor):
         errorCode, detectionState, detectedPoint, detectedObjectHandle, detectedSurfaceNormalVector = vrep.simxReadProximitySensor(
-            self.client_id, sensor, vrep.simx_opmode_streaming)
+            self.client_id, sensor, vrep.simx_opmode_buffer)
         return detectionState
 
     def get_sensor_distance(self, sensor):

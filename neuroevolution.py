@@ -22,8 +22,11 @@ if not os.path.exists(settings.PATH_NE):
 
 def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
-                
-        if (vrep.simxStartSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
+
+        # Enable the synchronous mode
+        # vrep.simxSynchronous(settings.CLIENT_ID, True)
+
+        if (vrep.simxStartSimulation(settings.CLIENT_ID, vrep.simx_opmode_oneshot) == -1):
             print('Failed to start the simulation\n')
             print('Program ended\n')
             return
@@ -37,7 +40,7 @@ def eval_genomes(genomes, config):
         start_position = None
         # collistion detection initialization
         errorCode, collision_handle = vrep.simxGetCollisionHandle(
-            settings.CLIENT_ID, 'robot_collision', vrep.simx_opmode_oneshot_wait)
+            settings.CLIENT_ID, 'robot_collision', vrep.simx_opmode_blocking)
         collision = False
         first_collision_check = True
 
@@ -56,6 +59,10 @@ def eval_genomes(genomes, config):
         p = np.array([])
 
         while not collision and datetime.now() - now < timedelta(seconds=settings.RUNTIME):
+
+            # The first simulation step waits for a trigger before being executed
+            # vrep.simxSynchronousTrigger(settings.CLIENT_ID)
+
             individual.neuro_loop()
 
             # Traveled distance calculation
@@ -71,9 +78,15 @@ def eval_genomes(genomes, config):
                 # Fetch the newest joint value
                 collision_mode = vrep.simx_opmode_buffer
 
+
             collisionDetected, collision = vrep.simxReadCollision(
                 settings.CLIENT_ID, collision_handle, collision_mode)
             first_collision_check = False
+
+            # After this call, the first simulation step is finished
+            # vrep.simxGetPingTime(settings.CLIENT_ID)
+
+            # Now we can safely read all streamed values
 
             output = net.activate(individual.sensor_activation)
             # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
@@ -99,6 +112,7 @@ def eval_genomes(genomes, config):
             #  fitness_t at time stamp
             fitness_t = V * pleasure * pain
             fitness_agg = np.append(fitness_agg, fitness_t)
+
 
             # dump individuals data
             if settings.DEBUG:
