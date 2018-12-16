@@ -221,7 +221,6 @@ class EvolvedRobot(Robot):
         if DEBUG: self.logger.info('Normalized WheelSpeed {}'.format(self.norm_wheel_speeds))
 
         self.set_motors(*list(self.wheel_speeds))
-        time.sleep(0.1)  # loop executes once every 0.2 seconds
 
     def neuro_loop(self):
         self.sensor_activation = np.array([])
@@ -234,7 +233,6 @@ class EvolvedRobot(Robot):
                 self.sensor_activation = np.append(self.sensor_activation, 0)
 
         if DEBUG: self.logger.info('Sensors Activation {}'.format(self.sensor_activation))
-        time.sleep(0.1)
 
     @property
     def chromosome_size(self):

@@ -44,8 +44,6 @@ def eval_robot(individual):
     errorCode, collision_handle = vrep.simxGetCollisionHandle(
         settings.CLIENT_ID, 'robot_collision', vrep.simx_opmode_oneshot_wait)
     collision = False
-    first_collision_check = True
-    collision_mode = vrep.simx_opmode_buffer
 
     now = datetime.now()
     id = uuid.uuid1()
@@ -57,9 +55,19 @@ def eval_robot(individual):
     pp = np.array(start_position)
     p = np.array([])
 
+    collisionDetected, collision = vrep.simxReadCollision(
+        settings.CLIENT_ID, collision_handle, vrep.simx_opmode_streaming)
+
+
     if settings.DEBUG: individual.logger.info('Chromosome {}'.format(individual.chromosome))
 
     while not collision and datetime.now() - now < timedelta(seconds=settings.RUNTIME):
+
+        # The first simulation step waits for a trigger before being executed
+        vrep.simxSynchronousTrigger(settings.CLIENT_ID)
+
+        collisionDetected, collision = vrep.simxReadCollision(
+            settings.CLIENT_ID, collision_handle, vrep.simx_opmode_buffer)
 
         individual.loop()
 
@@ -69,12 +77,9 @@ def eval_robot(individual):
         distance_acc += d
         pp = p
 
-        # collision detection
-        if first_collision_check:
-            collision_mode = vrep.simx_opmode_streaming
-            first_collision_check = False
-
-        collisionDetected, collision = vrep.simxReadCollision(settings.CLIENT_ID, collision_handle, collision_mode)
+        # After this call, the first simulation step is finished
+        vrep.simxGetPingTime(settings.CLIENT_ID)
+        # Now we can safely read all streamed values
 
         # Fitness function; each feature;
         # V - wheel center

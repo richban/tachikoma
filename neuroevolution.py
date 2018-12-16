@@ -24,7 +24,7 @@ def eval_genomes(genomes, config):
     for genome_id, genome in genomes:
 
         # Enable the synchronous mode
-        # vrep.simxSynchronous(settings.CLIENT_ID, True)
+        vrep.simxSynchronous(settings.CLIENT_ID, True)
 
         if (vrep.simxStartSimulation(settings.CLIENT_ID, vrep.simx_opmode_oneshot) == -1):
             print('Failed to start the simulation\n')
@@ -58,10 +58,16 @@ def eval_genomes(genomes, config):
         pp = np.array(start_position)
         p = np.array([])
 
+        collisionDetected, collision = vrep.simxReadCollision(
+            settings.CLIENT_ID, collision_handle, vrep.simx_opmode_streaming)
+
         while not collision and datetime.now() - now < timedelta(seconds=settings.RUNTIME):
 
             # The first simulation step waits for a trigger before being executed
-            # vrep.simxSynchronousTrigger(settings.CLIENT_ID)
+            vrep.simxSynchronousTrigger(settings.CLIENT_ID)
+
+            collisionDetected, collision = vrep.simxReadCollision(
+                settings.CLIENT_ID, collision_handle, vrep.simx_opmode_buffer)
 
             individual.neuro_loop()
 
@@ -71,23 +77,6 @@ def eval_genomes(genomes, config):
             distance_acc += d
             pp = p
 
-            if first_collision_check:
-                # Streaming operation request (subscription)
-                collision_mode = vrep.simx_opmode_streaming
-            else:
-                # Fetch the newest joint value
-                collision_mode = vrep.simx_opmode_buffer
-
-
-            collisionDetected, collision = vrep.simxReadCollision(
-                settings.CLIENT_ID, collision_handle, collision_mode)
-            first_collision_check = False
-
-            # After this call, the first simulation step is finished
-            # vrep.simxGetPingTime(settings.CLIENT_ID)
-
-            # Now we can safely read all streamed values
-
             output = net.activate(individual.sensor_activation)
             # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
             scaled_output = np.array([scale(xi, 0.0, 2.0) for xi in output])
@@ -95,6 +84,10 @@ def eval_genomes(genomes, config):
             if settings.DEBUG: individual.logger.info('Wheels {}'.format(scaled_output))
 
             individual.set_motors(*list(scaled_output))
+
+            # After this call, the first simulation step is finished
+            vrep.simxGetPingTime(settings.CLIENT_ID)
+            # Now we can safely read all streamed values
 
             # Fitness function; each feature;
             # V - wheel center
@@ -136,7 +129,7 @@ def eval_genomes(genomes, config):
         # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
         vrep.simxGetPingTime(settings.CLIENT_ID)
 
-        # print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
+        print('%s with fitness: %f and distance %f' % (str(genome_id), fitness, fitness_aff[0]))
 
         if (vrep.simxStopSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
             print('Failed to stop the simulation\n')
