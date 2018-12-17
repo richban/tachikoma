@@ -100,7 +100,7 @@ def eval_robot(individual):
 
         # dump individuals data
         if settings.DEBUG:
-            with open(PATH + str(id) + '_fitness.txt', 'a') as f:
+            with open(PATH_EA + str(id) + '_fitness.txt', 'a') as f:
                 f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, individual.wheel_speeds[0],
                 individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
 
@@ -267,7 +267,7 @@ def evolution_obstacle_avoidance(args):
         fit_avgs,
         fit_maxs,
         ratio=0.35,
-        save=settings.PATH + 'evolved-obstacle.pdf')
+        save=settings.PATH_EA + 'evolved-obstacle.pdf')
 
     if (vrep.simxFinish(settings.CLIENT_ID) == -1):
         print('Evolutionary program failed to exit\n')
