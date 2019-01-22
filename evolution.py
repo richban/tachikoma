@@ -22,7 +22,10 @@ settings.init()
 if not os.path.exists(settings.PATH_EA):
     os.makedirs(settings.PATH_EA)
 
-def eval_robot(individual):
+def eval_robot(chromosome):
+
+    # Enable the synchronous mode
+    vrep.simxSynchronous(settings.CLIENT_ID, True)
 
     if (vrep.simxStartSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
         print('Failed to start the simulation\n')
@@ -32,7 +35,7 @@ def eval_robot(individual):
     # print('Starting simulation')
 
     individual = EvolvedRobot(
-        individual,
+        chromosome,
         client_id=settings.CLIENT_ID,
         id=None,
         op_mode=settings.CLIENT_ID)
@@ -72,10 +75,10 @@ def eval_robot(individual):
         individual.loop()
 
         # Traveled distance calculation
-        p = np.array(individual.position)
-        d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
-        distance_acc += d
-        pp = p
+        # p = np.array(individual.position)
+        # d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
+        # distance_acc += d
+        # pp = p
 
         # After this call, the first simulation step is finished
         vrep.simxGetPingTime(settings.CLIENT_ID)
@@ -100,20 +103,20 @@ def eval_robot(individual):
 
         # dump individuals data
         if settings.DEBUG:
-            with open(PATH_EA + str(id) + '_fitness.txt', 'a') as f:
-                f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, individual.wheel_speeds[0],
+            with open(settings.PATH_EA + str(id) + '_fitness.txt', 'a') as f:
+                f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}\n'.format(id, individual.wheel_speeds[0],
                 individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
 
 
     # aggregate fitness function
-    fitness_aff = [distance_acc]
-
+    # fitness_aff = [distance_acc]
+    # print('fitness_aff {}'.format(fitness_aff))
 
     # behavarioral fitness function
     fitness_bff = [np.sum(fitness_agg)]
 
     # tailored fitness function
-    fitness = fitness_bff[0] * fitness_aff[0]
+    fitness = fitness_bff[0] # * fitness_aff[0]
 
     # Now send some data to V-REP in a non-blocking fashion:
     vrep.simxAddStatusbarMessage(settings.CLIENT_ID, 'fitness: {}'.format(fitness), vrep.simx_opmode_oneshot)
@@ -167,7 +170,7 @@ def evolution_obstacle_avoidance(args):
     settings.CXPB = args.cxpb # 0.1
     # MUTPB is the probability for mutating an individual
     settings.MUTPB = args.mutpb # 0.2
-
+    settings.debug = args.debug
     # save the config
     dump_config(settings.POPULATION,
                 settings.N_GENERATIONS,
@@ -258,9 +261,7 @@ def evolution_obstacle_avoidance(args):
     fit_mins = log.select('min')
     fit_avgs = log.select('avg')
     fit_maxs = log.select('max')
-
-    save_date = datetime.now().strftime('%m-%d-%H-%M')
-
+    
     plot_single_run(
         gen,
         fit_mins,
@@ -286,6 +287,7 @@ if __name__ == '__main__':
     parser.add_argument('--time', type=int, help='running time of one epoch')
     parser.add_argument('--cxpb', type=float, help='the probability with which two individuals are crossed')
     parser.add_argument('--mutpb', type=float, help='the probability for mutating an individual')
+    parser.add_argument('--debug', type=bool, help='debbuggin for logging purposess')
     args = parser.parse_args()
 
     evolution_obstacle_avoidance(args)

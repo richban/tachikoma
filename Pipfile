@@ -9,10 +9,14 @@ numpy = "*"
 matplotlib = "*"
 networkx = "*"
 scikit-learn = "*"
+jupyter = "*"
+pylint = "*"
 
 [packages]
 neat-python = "*"
 deap = "*"
+jupyter = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"
