@@ -72,10 +72,10 @@ def eval_genomes(genomes, config):
             individual.neuro_loop()
 
             # Traveled distance calculation
-            p = np.array(individual.position)
-            d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
-            distance_acc += d
-            pp = p
+            # p = np.array(individual.position)
+            # d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
+            # distance_acc += d
+            # pp = p
 
             output = net.activate(individual.sensor_activation)
             # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
@@ -110,18 +110,18 @@ def eval_genomes(genomes, config):
             # dump individuals data
             if settings.DEBUG:
                 with open(settings.PATH_NE + str(id) + '_fitness.txt', 'a') as f:
-                    f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{5}\n'.format(id, output[0], output[1], scaled_output[0], scaled_output[1], V, pleasure, pain, fitness_t))
+                    f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}\n'.format(id, scaled_output[0], scaled_output[1], output[0], output[1], V, pleasure, pain, fitness_t))
 
 
         # errorCode, distance = vrep.simxGetFloatSignal(CLIENT_ID, 'distance', vrep.simx_opmode_blocking)
         # aggregate fitness function - traveled distance
-        fitness_aff = [distance_acc]
+        # fitness_aff = [distance_acc]
 
         # behavarioral fitness function
         fitness_bff = [np.sum(fitness_agg)]
 
         # tailored fitness function
-        fitness = fitness_bff[0] * fitness_aff[0]
+        fitness = fitness_bff[0] # * fitness_aff[0]
 
         # Now send some data to V-REP in a non-blocking fashion:
         vrep.simxAddStatusbarMessage(settings.CLIENT_ID, 'fitness: {}'.format(fitness), vrep.simx_opmode_oneshot)
@@ -129,7 +129,7 @@ def eval_genomes(genomes, config):
         # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
         vrep.simxGetPingTime(settings.CLIENT_ID)
 
-        print('%s with fitness: %f and distance %f' % (str(genome_id), fitness, fitness_aff[0]))
+        # print('%s with fitness: %f and distance %f' % (str(genome_id), fitness, fitness_aff[0]))
 
         if (vrep.simxStopSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
             print('Failed to stop the simulation\n')
@@ -159,7 +159,7 @@ def run(config_file, args):
 
     settings.N_GENERATIONS = args.n_gen
     settings.RUNTIME = args.time
-    settings.DEBUG = False
+    settings.DEBUG = True
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -175,7 +175,7 @@ def run(config_file, args):
     stats = neat.StatisticsReporter()
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(stats)
-    p.add_reporter(neat.Checkpointer(1))
+    p.add_reporter(neat.Checkpointer(10))
 
     # Run for up to N_GENERATIONS generations.
     winner = p.run(eval_genomes, settings.N_GENERATIONS)
