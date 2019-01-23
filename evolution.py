@@ -15,14 +15,14 @@ from argparse import ArgumentParser
 import math
 import pickle
 import settings
-
+from functools import partial
 
 settings.init()
 
 if not os.path.exists(settings.PATH_EA):
     os.makedirs(settings.PATH_EA)
 
-def eval_robot(chromosome):
+def eval_robot(robot, chromosome):
 
     # Enable the synchronous mode
     vrep.simxSynchronous(settings.CLIENT_ID, True)
@@ -32,14 +32,9 @@ def eval_robot(chromosome):
         print('Program ended\n')
         return
 
-    # print('Starting simulation')
-
-    individual = EvolvedRobot(
-        chromosome,
-        client_id=settings.CLIENT_ID,
-        id=None,
-        op_mode=settings.CLIENT_ID)
-
+    robot.chromosome = chromosome
+    individual = robot
+    
     start_position = None
     fitness_agg = np.array([])
 
@@ -55,8 +50,7 @@ def eval_robot(chromosome):
         start_position = individual.position
 
     distance_acc = 0.0
-    pp = np.array(start_position)
-    p = np.array([])
+    previous = np.array(start_position)
 
     collisionDetected, collision = vrep.simxReadCollision(
         settings.CLIENT_ID, collision_handle, vrep.simx_opmode_streaming)
@@ -67,6 +61,7 @@ def eval_robot(chromosome):
     while not collision and datetime.now() - now < timedelta(seconds=settings.RUNTIME):
 
         # The first simulation step waits for a trigger before being executed
+        # start_time = time.time()
         vrep.simxSynchronousTrigger(settings.CLIENT_ID)
 
         collisionDetected, collision = vrep.simxReadCollision(
@@ -74,15 +69,14 @@ def eval_robot(chromosome):
 
         individual.loop()
 
-        # Traveled distance calculation
-        # p = np.array(individual.position)
-        # d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
-        # distance_acc += d
-        # pp = p
+        # # Traveled distance calculation
+        # current = np.array(individual.position)
+        # distance = math.sqrt(((current[0] - previous[0])**2) + ((current[1] - previous[1])**2))
+        # distance_acc += distance
+        # previous = current
 
         # After this call, the first simulation step is finished
         vrep.simxGetPingTime(settings.CLIENT_ID)
-        # Now we can safely read all streamed values
 
         # Fitness function; each feature;
         # V - wheel center
@@ -100,17 +94,18 @@ def eval_robot(chromosome):
         #  fitness_t at time stamp
         fitness_t = V * pleasure * pain
         fitness_agg = np.append(fitness_agg, fitness_t)
+        
+        # elapsed_time = time.time() - start_time
 
         # dump individuals data
         if settings.DEBUG:
             with open(settings.PATH_EA + str(id) + '_fitness.txt', 'a') as f:
-                f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}\n'.format(id, individual.wheel_speeds[0],
-                individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t))
+                f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}, {9}\n'.format(id, individual.wheel_speeds[0],
+                individual.wheel_speeds[1], individual.norm_wheel_speeds[0], individual.norm_wheel_speeds[1], V, pleasure, pain, fitness_t, distance_acc))
 
 
     # aggregate fitness function
     # fitness_aff = [distance_acc]
-    # print('fitness_aff {}'.format(fitness_aff))
 
     # behavarioral fitness function
     fitness_bff = [np.sum(fitness_agg)]
@@ -124,7 +119,7 @@ def eval_robot(chromosome):
     # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
     vrep.simxGetPingTime(settings.CLIENT_ID)
 
-    # print('%s with fitness: %f and distance %f' % (str(id), fitness, fitness_aff[0]))
+    print('%s fitness: %f | fitness_bff %f | fitness_aff %f' % (str(id), fitness, fitness_bff[0], 0.0)) # , fitness_aff[0]))
 
     # save individual as object
     if settings.DEBUG:
@@ -140,7 +135,7 @@ def eval_robot(chromosome):
 
     return [fitness]
 
-def evolution_obstacle_avoidance(args):
+def evolution_obstacle_avoidance():
     print('Evolutionary program started!')
     # Just in case, close all opened connections
     vrep.simxFinish(-1)
@@ -160,18 +155,12 @@ def evolution_obstacle_avoidance(args):
 
     print('Connected to remote API server')
 
-    robot = EvolvedRobot([], client_id=settings.CLIENT_ID, id=None, op_mode=settings.OP_MODE)
+    robot = EvolvedRobot(
+        None,
+        client_id=settings.CLIENT_ID,
+        id=None,
+        op_mode=settings.CLIENT_ID)
 
-    # Evolution
-    settings.RUNTIME = args.time
-    settings.POPULATION = args.pop
-    settings.N_GENERATIONS = args.n_gen
-    # CXPB  is the probability with which two individuals are crossed
-    settings.CXPB = args.cxpb # 0.1
-    # MUTPB is the probability for mutating an individual
-    settings.MUTPB = args.mutpb # 0.2
-    settings.debug = args.debug
-    # save the config
     dump_config(settings.POPULATION,
                 settings.N_GENERATIONS,
                 settings.RUNTIME,
@@ -197,12 +186,13 @@ def evolution_obstacle_avoidance(args):
         creator.Individual,
         toolbox.attr_float,
         n=robot.chromosome_size)
+
     toolbox.register('population', tools.initRepeat, list, toolbox.individual)
     toolbox.register('map', map)
 
     # Register genetic operators
     # register the goal / fitness function
-    toolbox.register('evaluate', eval_robot)
+    toolbox.register('evaluate', partial(eval_robot, robot))
     # register the crossover operator
     toolbox.register('mate', tools.cxTwoPoint)
     # register a mutation operator with a probability to
@@ -281,13 +271,5 @@ def dump_config(pop, n_gen, time, cxpb, mutpb):
             .format(pop, n_gen, time, cxpb, mutpb))
 
 if __name__ == '__main__':
-    parser = ArgumentParser(description='Help me throughout the evolution')
-    parser.add_argument('--pop', type=int, help='population size')
-    parser.add_argument('--n_gen', type=int, help='number of generations')
-    parser.add_argument('--time', type=int, help='running time of one epoch')
-    parser.add_argument('--cxpb', type=float, help='the probability with which two individuals are crossed')
-    parser.add_argument('--mutpb', type=float, help='the probability for mutating an individual')
-    parser.add_argument('--debug', type=bool, help='debbuggin for logging purposess')
-    args = parser.parse_args()
-
-    evolution_obstacle_avoidance(args)
+    # Start Evolution
+    evolution_obstacle_avoidance()

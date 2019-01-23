@@ -24,5 +24,6 @@ def init():
     RUNTIME = 30
     CXPB = 0.1
     MUTPB = 0.2
-    DEBUG = False
-    N_GENERATIONS = 10
+    DEBUG = True
+    N_GENERATIONS = 2
+    POPULATION = 2
