@@ -15,6 +15,7 @@ def init():
     global N_GENERATIONS
     global CXPB
     global MUTPB
+    global SAVE_DATA
     OP_MODE = vrep.simx_opmode_oneshot_wait
     PORT_NUM = 19997
     PATH_EA = './data/ea/' + datetime.now().strftime('%Y-%m-%d') + '/'
@@ -24,6 +25,7 @@ def init():
     RUNTIME = 30
     CXPB = 0.1
     MUTPB = 0.2
-    DEBUG = True
+    DEBUG = False
     N_GENERATIONS = 2
     POPULATION = 2
+    SAVE_DATA = False

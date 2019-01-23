@@ -32,6 +32,9 @@ def eval_genomes(robot, genomes, config):
             return
 
         robot.chromosome = genome
+        robot.wheel_speeds = np.array([])
+        robot.sensor_activation = np.array([])
+        robot.norm_wheel_speeds = np.array([])
         individual = robot
 
         start_position = None
@@ -103,7 +106,7 @@ def eval_genomes(robot, genomes, config):
 
 
             # dump individuals data
-            if settings.DEBUG:
+            if settings.SAVE_DATA:
                 with open(settings.PATH_NE + str(id) + '_fitness.txt', 'a') as f:
                     f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}, {9}\n'.format(id, scaled_output[0], scaled_output[1], output[0], output[1], V, pleasure, pain, fitness_t, distance_acc))
 
@@ -173,7 +176,7 @@ def run(config_file):
         None,
         client_id=settings.CLIENT_ID,
         id=None,
-        op_mode=settings.CLIENT_ID)
+        op_mode=settings.OP_MODE)
 
     # Run for up to N_GENERATIONS generations.
     winner = p.run(partial(eval_genomes, robot), settings.N_GENERATIONS)

@@ -159,7 +159,7 @@ def evolution_obstacle_avoidance():
         None,
         client_id=settings.CLIENT_ID,
         id=None,
-        op_mode=settings.CLIENT_ID)
+        op_mode=settings.OP_MODE)
 
     dump_config(settings.POPULATION,
                 settings.N_GENERATIONS,
