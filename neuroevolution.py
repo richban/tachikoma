@@ -13,14 +13,14 @@ import math
 from argparse import ArgumentParser
 import configparser
 import settings
-
+from functools import partial
 
 settings.init()
 
 if not os.path.exists(settings.PATH_NE):
     os.makedirs(settings.PATH_NE)
 
-def eval_genomes(genomes, config):
+def eval_genomes(robot, genomes, config):
     for genome_id, genome in genomes:
 
         # Enable the synchronous mode
@@ -31,11 +31,8 @@ def eval_genomes(genomes, config):
             print('Program ended\n')
             return
 
-        individual = EvolvedRobot(
-            genome,
-            client_id=settings.CLIENT_ID,
-            id=None,
-            op_mode=settings.OP_MODE)
+        robot.chromosome = genome
+        individual = robot
 
         start_position = None
         # collistion detection initialization
@@ -55,8 +52,7 @@ def eval_genomes(genomes, config):
             start_position = individual.position
 
         distance_acc = 0.0
-        pp = np.array(start_position)
-        p = np.array([])
+        previous = np.array(start_position)
 
         collisionDetected, collision = vrep.simxReadCollision(
             settings.CLIENT_ID, collision_handle, vrep.simx_opmode_streaming)
@@ -71,11 +67,11 @@ def eval_genomes(genomes, config):
 
             individual.neuro_loop()
 
-            # Traveled distance calculation
-            # p = np.array(individual.position)
-            # d = math.sqrt(((p[0] - pp[0])**2) + ((p[1] -pp[1])**2))
-            # distance_acc += d
-            # pp = p
+            # # Traveled distance calculation
+            # current = np.array(individual.position)
+            # distance = math.sqrt(((current[0] - previous[0])**2) + ((current[1] - previous[1])**2))
+            # distance_acc += distance
+            # previous = current
 
             output = net.activate(individual.sensor_activation)
             # normalize motor wheel wheel_speeds [0.0, 2.0] - robot
@@ -87,7 +83,6 @@ def eval_genomes(genomes, config):
 
             # After this call, the first simulation step is finished
             vrep.simxGetPingTime(settings.CLIENT_ID)
-            # Now we can safely read all streamed values
 
             # Fitness function; each feature;
             # V - wheel center
@@ -110,7 +105,7 @@ def eval_genomes(genomes, config):
             # dump individuals data
             if settings.DEBUG:
                 with open(settings.PATH_NE + str(id) + '_fitness.txt', 'a') as f:
-                    f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}\n'.format(id, scaled_output[0], scaled_output[1], output[0], output[1], V, pleasure, pain, fitness_t))
+                    f.write('{0!s},{1},{2},{3},{4},{5},{6},{7},{8}, {9}\n'.format(id, scaled_output[0], scaled_output[1], output[0], output[1], V, pleasure, pain, fitness_t, distance_acc))
 
 
         # errorCode, distance = vrep.simxGetFloatSignal(CLIENT_ID, 'distance', vrep.simx_opmode_blocking)
@@ -129,7 +124,7 @@ def eval_genomes(genomes, config):
         # Before closing the connection to V-REP, make sure that the last command sent out had time to arrive. You can guarantee this with (for example):
         vrep.simxGetPingTime(settings.CLIENT_ID)
 
-        # print('%s with fitness: %f and distance %f' % (str(genome_id), fitness, fitness_aff[0]))
+        print('%s fitness: %f | fitness_bff %f | fitness_aff %f' % (str(genome_id), fitness, fitness_bff[0], 0.0)) # , fitness_aff[0]))
 
         if (vrep.simxStopSimulation(settings.CLIENT_ID, settings.OP_MODE) == -1):
             print('Failed to stop the simulation\n')
@@ -139,7 +134,7 @@ def eval_genomes(genomes, config):
         time.sleep(1)
         genome.fitness = fitness
 
-def run(config_file, args):
+def run(config_file):
     print('Neuroevolutionary program started!')
     # Just in case, close all opened connections
     vrep.simxFinish(-1)
@@ -157,9 +152,6 @@ def run(config_file, args):
         print('Program ended')
         return
 
-    settings.N_GENERATIONS = args.n_gen
-    settings.RUNTIME = args.time
-    settings.DEBUG = True
     # Load configuration.
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation,
@@ -177,8 +169,14 @@ def run(config_file, args):
     p.add_reporter(stats)
     p.add_reporter(neat.Checkpointer(10))
 
+    robot = EvolvedRobot(
+        None,
+        client_id=settings.CLIENT_ID,
+        id=None,
+        op_mode=settings.CLIENT_ID)
+
     # Run for up to N_GENERATIONS generations.
-    winner = p.run(eval_genomes, settings.N_GENERATIONS)
+    winner = p.run(partial(eval_genomes, robot), settings.N_GENERATIONS)
 
     # Write run statistics to file.
     stats.save_genome_fitness(filename=settings.PATH_NE+'fitnesss_history.csv')
@@ -212,13 +210,7 @@ def run(config_file, args):
 
 
 if __name__ == '__main__':
-    # Determine path to configuration file.
-    parser = ArgumentParser(description='Help me throughout the evolution')
-    parser.add_argument('--n_gen', type=int, help='number of generations')
-    parser.add_argument('--time', type=int, help='running time of one epoch')
-    args = parser.parse_args()
-
+    
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config.ini')
-
-    run(config_path, args)
+    run(config_path)
